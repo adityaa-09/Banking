@@ -3,7 +3,7 @@ import { useApp } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
 import {
   SectionHeader, Btn, StatusTag, FormField, FormPanel,
-  EmptyState, TableCard, FilterSelect, Modal, DetailGrid,
+  EmptyState, TableCard, FilterSelect, Modal, DetailGrid, DatePicker,
 } from "../components/UI";
 import { fmtShort, fmtDate } from "../utils/helpers";
 
@@ -142,8 +142,8 @@ export default function APFNumbers() {
             </FormField>
             <FormField label="APF Number" span={2}><input value={form.apfNumber} onChange={f("apfNumber")} placeholder="HDFC/APF/2024/001" /></FormField>
             <FormField label="Approved Amount (₹)"><input type="number" value={form.approvedAmt} onChange={f("approvedAmt")} /></FormField>
-            <FormField label="Approved On"><input type="date" value={form.approvedOn} onChange={f("approvedOn")} /></FormField>
-            <FormField label="Valid Till"><input type="date" value={form.validTill} onChange={f("validTill")} /></FormField>
+            <FormField label="Approved On"><DatePicker value={form.approvedOn} onChange={f("approvedOn")} /></FormField>
+            <FormField label="Valid Till"><DatePicker value={form.validTill} onChange={f("validTill")} /></FormField>
             <FormField label="Status">
               <select value={form.status} onChange={f("status")}>
                 <option>Active</option><option>Expired</option><option>Pending</option>

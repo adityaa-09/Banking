@@ -3,7 +3,7 @@ import { useApp } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
 import {
   SectionHeader, Btn, StatusTag, FormField, FormPanel,
-  EmptyState, Modal, DetailGrid,
+  EmptyState, Modal, DetailGrid, DatePicker,
 } from "../components/UI";
 import { fmtDate } from "../utils/helpers";
 
@@ -135,7 +135,7 @@ export default function Projects() {
               </select>
             </FormField>
             <FormField label="Total Units"><input type="number" value={form.totalUnits} onChange={f("totalUnits")} /></FormField>
-            <FormField label="Launch Date"><input type="date" value={form.launchDate} onChange={f("launchDate")} /></FormField>
+            <FormField label="Launch Date"><DatePicker value={form.launchDate} onChange={f("launchDate")} /></FormField>
             <FormField label="Developer Payout %">
               <input type="number" step="0.01" value={form.developerPayoutPct} onChange={f("developerPayoutPct")}
                 placeholder="e.g. 0.25 (% of disbursed amt we pay developer)" />

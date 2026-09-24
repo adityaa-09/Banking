@@ -3,7 +3,7 @@ import { useApp } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
 import {
   SectionHeader, Btn, StatusTag, FormField, FormPanel,
-  EmptyState, TableCard, FilterSelect, DetailGrid,
+  EmptyState, TableCard, FilterSelect, DetailGrid, DatePicker, MonthPicker,
 } from "../components/UI";
 import {
   fmtShort, fmtDate, calcCaseRevenue, calcSlotAmount, calcBankIncome, calcDevPayout,
@@ -52,11 +52,17 @@ const BLANK = {
   devPayoutMode: "per_slot",
   slots: [],
   driveLink: "", remarks: "",
+  amountReceivedStatus: "Pending",           // Accounts team fields
+  amountReceived: "",
+  amountReceivedDate: "",
+  amountReceivedBy: "",
+  utrRef: "",
+  accountsRemarks: "",
 };
 
 export default function Cases() {
   const { cases, saveCase, removeCase, projects, banks, loading } = useApp();
-  const { canEdit, user } = useAuth();
+  const { canEdit, canEditAccounts, user } = useAuth();
 
   const [showAdd,  setShowAdd]  = useState(false);
   const [editData, setEditData] = useState(null);
@@ -73,6 +79,7 @@ export default function Cases() {
   const [fBank,    setFBank]    = useState("");
   const [fStatus,  setFStatus]  = useState("");
   const [fProject, setFProject] = useState("");
+  const [fReceipt, setFReceipt] = useState("");
   const [search,   setSearch]   = useState("");
 
   const formBank    = banks.find(b => b.id === form.bankId);
@@ -135,6 +142,12 @@ export default function Cases() {
       devPayoutMode: c.devPayoutMode || "per_slot",
       slots: c.slots || buildSlots(c.totalSlots || 3, c.loanAmt || 0),
       driveLink: c.driveLink || "", remarks: c.remarks || "",
+      amountReceivedStatus: c.amountReceivedStatus || (c.amountReceived ? "Received" : "Pending"),
+      amountReceived: c.amountReceived !== undefined ? c.amountReceived : "",
+      amountReceivedDate: c.amountReceivedDate || "",
+      amountReceivedBy: c.amountReceivedBy || "",
+      utrRef: c.utrRef || "",
+      accountsRemarks: c.accountsRemarks || "",
     });
     setShowAdd(false); setViewCase(null);
   };
@@ -147,17 +160,23 @@ export default function Cases() {
     const isNowDisbursed = form.disbursed === "yes" && Number(form.disbursedAmt) > 0;
     const payload = {
       ...form,
-      loanAmt:       Number(form.loanAmt) || 0,
-      sanctionedAmt: Number(form.sanctionedAmt) || Number(form.loanAmt) || 0,
-      disbursedAmt:  Number(form.disbursedAmt) || 0,
-      disbursed:     isNowDisbursed,
+      loanAmt:              Number(form.loanAmt) || 0,
+      sanctionedAmt:        Number(form.sanctionedAmt) || Number(form.loanAmt) || 0,
+      disbursedAmt:         Number(form.disbursedAmt) || 0,
+      disbursed:            isNowDisbursed,
       // Auto-update status to Disbursed when disbursed amount is filled (Gross model)
       status: (!isNet && isNowDisbursed && form.status !== "Rejected") ? "Disbursed" : form.status,
-      totalSlots:    n,
-      customSlots:   form.customSlots,
-      slots:         isNet ? (form.slots || buildSlots(n, Number(form.loanAmt)||0)) : [],
-      createdBy:     editData?.createdBy || user?.id,
-      createdByName: editData?.createdByName || user?.name,
+      totalSlots:           n,
+      customSlots:          form.customSlots,
+      slots:                isNet ? (form.slots || buildSlots(n, Number(form.loanAmt)||0)) : [],
+      amountReceivedStatus: form.amountReceivedStatus || "Pending",
+      amountReceived:       form.amountReceived !== "" ? (Number(form.amountReceived) || 0) : 0,
+      amountReceivedDate:   form.amountReceivedDate || "",
+      amountReceivedBy:     form.amountReceivedBy || "",
+      utrRef:               form.utrRef || "",
+      accountsRemarks:      form.accountsRemarks || "",
+      createdBy:            editData?.createdBy || user?.id,
+      createdByName:        editData?.createdByName || user?.name,
     };
     setSaving(true);
     await saveCase(payload, editData?.id || null);
@@ -197,6 +216,30 @@ export default function Cases() {
     setViewCase(updated);
   };
 
+  // Quick update for accounts receipt from CaseModal
+  const updateAccountsReceipt = async (c, receiptData) => {
+    const updated = {
+      ...c,
+      amountReceivedStatus: receiptData.amountReceivedStatus || "Received",
+      amountReceived:       Number(receiptData.amountReceived) || 0,
+      amountReceivedDate:   receiptData.amountReceivedDate || new Date().toISOString().split("T")[0],
+      amountReceivedBy:     receiptData.amountReceivedBy || user?.name || "",
+      utrRef:               receiptData.utrRef || "",
+      accountsRemarks:      receiptData.accountsRemarks || "",
+    };
+    await saveCase(updated, c.id);
+    try {
+      await addLog({
+        caseId: c.id,
+        action: `updated Accounts receipt (${updated.amountReceivedStatus}: ₹${updated.amountReceived} received by ${updated.amountReceivedBy})`,
+        userId: user?.id,
+        userName: user?.name,
+      });
+    } catch {}
+    setViewCase(updated);
+    try { setCaseLogs(await getLogsForCase(c.id)); } catch {}
+  };
+
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
@@ -224,11 +267,13 @@ export default function Cases() {
 
   const filtered = cases.filter(c => {
     const bank = banks.find(b => b.id === c.bankId);
+    const isReceived = c.amountReceivedStatus === "Received" || Number(c.amountReceived) > 0;
     return (
       (!fMonth   || c.month === fMonth) &&
       (!fBank    || c.bankId === fBank) &&
       (!fProject || c.projectId === fProject) &&
       (!fStatus  || caseStatus(c, bank) === fStatus) &&
+      (!fReceipt || (fReceipt === "Received" ? isReceived : !isReceived)) &&
       (!search   || [c.clientName, c.clientPhone, c.clientEmail, c.salesPoc]
         .some(v => v?.toLowerCase().includes(search.toLowerCase())))
     );
@@ -275,7 +320,7 @@ export default function Cases() {
             </FormField>
             <FormField label="Loan Amount (₹)"><input type="number" value={form.loanAmt} onChange={f("loanAmt")} /></FormField>
             <FormField label="Sanctioned Amount (₹)"><input type="number" value={form.sanctionedAmt} onChange={f("sanctionedAmt")} /></FormField>
-            <FormField label="Month (YYYY-MM)"><input type="month" value={form.month} onChange={f("month")} /></FormField>
+            <FormField label="Month (YYYY-MM)"><MonthPicker value={form.month} onChange={f("month")} /></FormField>
             <FormField label="Status">
               <select value={form.status} onChange={f("status")}>
                 <option>In Process</option>
@@ -285,7 +330,7 @@ export default function Cases() {
               </select>
             </FormField>
             <FormField label="Sales POC"><input value={form.salesPoc} onChange={f("salesPoc")} placeholder="Sales person name" /></FormField>
-            <FormField label="Sanction Date"><input type="date" value={form.sanctionDate} onChange={f("sanctionDate")} /></FormField>
+            <FormField label="Sanction Date"><DatePicker value={form.sanctionDate} onChange={f("sanctionDate")} /></FormField>
             <FormField label="Sanction Doc"><input value={form.sanctionDoc} onChange={f("sanctionDoc")} placeholder="SanctionLetter.pdf" /></FormField>
           </div>
 
@@ -317,7 +362,7 @@ export default function Cases() {
                 </FormField>
                 {/* FIX #5 — disbursement date */}
                 <FormField label="Disbursement Date">
-                  <input type="date" value={form.disbursedDate} onChange={f("disbursedDate")} />
+                  <DatePicker value={form.disbursedDate} onChange={f("disbursedDate")} />
                 </FormField>
               </>}
               <FormField label="Dev Payout Status">
@@ -327,7 +372,7 @@ export default function Cases() {
               </FormField>
               {form.devPayoutStatus === "Paid" && (
                 <FormField label="Dev Payout Date">
-                  <input type="date" value={form.devPayoutDate} onChange={f("devPayoutDate")} />
+                  <DatePicker value={form.devPayoutDate} onChange={f("devPayoutDate")} />
                 </FormField>
               )}
             </>}
@@ -399,11 +444,128 @@ export default function Cases() {
           )}
 
           <div className="grid-3" style={{ marginTop:14 }}>
-            <FormField label="Disbursement Month"><input type="month" value={form.disbursedMonth} onChange={f("disbursedMonth")} /></FormField>
+            <FormField label="Disbursement Month"><MonthPicker value={form.disbursedMonth} onChange={f("disbursedMonth")} /></FormField>
             <FormField label="Google Drive Link" span={2}>
               <input value={form.driveLink} onChange={f("driveLink")} placeholder="https://drive.google.com/..." />
             </FormField>
             <FormField label="Remarks" span={3}><textarea rows={2} value={form.remarks} onChange={f("remarks")} /></FormField>
+          </div>
+
+          {/* ACCOUNTS TEAM — AMOUNT RECEIVED IN BANK */}
+          <div style={{
+            marginTop: 18,
+            background: "linear-gradient(135deg, rgba(0, 212, 161, 0.05), rgba(0, 136, 255, 0.05))",
+            border: "1px solid rgba(0, 212, 161, 0.25)",
+            borderRadius: 12,
+            padding: "16px 18px",
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 16 }}>💳</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                  Accounts Team — Amount Received in Bank
+                </span>
+              </div>
+              <span className="tag" style={{
+                background: form.amountReceivedStatus === "Received" ? "#10b98122" : form.amountReceivedStatus === "Partially Received" ? "#0088ff22" : "#f59e0b22",
+                color: form.amountReceivedStatus === "Received" ? "#34d399" : form.amountReceivedStatus === "Partially Received" ? "#60a5fa" : "#fbbf24",
+                fontWeight: 600,
+              }}>
+                {form.amountReceivedStatus || "Pending"}
+              </span>
+            </div>
+
+            <div className="grid-3">
+              <FormField label="Payment Status">
+                <select value={form.amountReceivedStatus || "Pending"} onChange={e => {
+                  const val = e.target.value;
+                  setForm(prev => ({
+                    ...prev,
+                    amountReceivedStatus: val,
+                    amountReceivedDate: (val === "Received" || val === "Partially Received") && !prev.amountReceivedDate
+                      ? new Date().toISOString().split("T")[0]
+                      : prev.amountReceivedDate,
+                    amountReceivedBy: (val === "Received" || val === "Partially Received") && !prev.amountReceivedBy
+                      ? (user?.name || "")
+                      : prev.amountReceivedBy,
+                    amountReceived: (val === "Received" || val === "Partially Received") && (!prev.amountReceived || prev.amountReceived === 0) && previewPL?.bankIncome
+                      ? Math.round(previewPL.bankIncome)
+                      : prev.amountReceived,
+                  }));
+                }}>
+                  <option value="Pending">Pending / Not Received</option>
+                  <option value="Received">Received in Bank Account</option>
+                  <option value="Partially Received">Partially Received</option>
+                </select>
+              </FormField>
+
+              <FormField label="Amount Received (₹)">
+                <div style={{ position: "relative" }}>
+                  <input
+                    type="number"
+                    value={form.amountReceived}
+                    onChange={f("amountReceived")}
+                    placeholder={previewPL?.bankIncome ? `Expected: ₹${Math.round(previewPL.bankIncome)}` : "e.g. 50000"}
+                  />
+                  {previewPL?.bankIncome > 0 && Number(form.amountReceived) !== Math.round(previewPL.bankIncome) && (
+                    <button
+                      type="button"
+                      onClick={() => setForm(p => ({ ...p, amountReceived: Math.round(previewPL.bankIncome) }))}
+                      style={{
+                        position: "absolute",
+                        right: 8,
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        background: "var(--border)",
+                        border: "none",
+                        borderRadius: 4,
+                        fontSize: 10,
+                        padding: "2px 6px",
+                        color: "var(--accent)",
+                        cursor: "pointer",
+                      }}
+                      title="Auto-fill expected bank commission"
+                    >
+                      Fill ₹{Math.round(previewPL.bankIncome)}
+                    </button>
+                  )}
+                </div>
+              </FormField>
+
+              <FormField label="Received Date">
+                <DatePicker
+                  value={form.amountReceivedDate}
+                  onChange={f("amountReceivedDate")}
+                />
+              </FormField>
+
+              <FormField label="Received By">
+                <input
+                  type="text"
+                  value={form.amountReceivedBy}
+                  onChange={f("amountReceivedBy")}
+                  placeholder="Person / Accounts member name"
+                />
+              </FormField>
+
+              <FormField label="Bank Ref / UTR No.">
+                <input
+                  type="text"
+                  value={form.utrRef}
+                  onChange={f("utrRef")}
+                  placeholder="e.g. UTR / Transaction ID"
+                />
+              </FormField>
+
+              <FormField label="Accounts Remarks">
+                <input
+                  type="text"
+                  value={form.accountsRemarks}
+                  onChange={f("accountsRemarks")}
+                  placeholder="Bank A/C details / payment note"
+                />
+              </FormField>
+            </div>
           </div>
         </FormPanel>
       )}
@@ -415,6 +577,7 @@ export default function Cases() {
         <FilterSelect value={fProject} onChange={setFProject} placeholder="All Projects"  options={projects.map(p=>[p.id,p.name])} />
         <FilterSelect value={fBank}    onChange={setFBank}    placeholder="All Banks"     options={banks.map(b=>[b.id,b.name])} />
         <FilterSelect value={fStatus}  onChange={setFStatus}  placeholder="All Status"    options={allStatuses.map(s=>[s,s])} />
+        <FilterSelect value={fReceipt} onChange={setFReceipt} placeholder="All Receipts"  options={[["Received","Received in Bank"],["Pending","Pending Receipt"]]} />
         <div style={{ marginLeft:"auto", fontSize:13, color:"var(--text-faint)" }}>{filtered.length} case{filtered.length!==1?"s":""}</div>
       </div>
 
@@ -428,7 +591,7 @@ export default function Cases() {
               <tr>
                 <th>Client</th><th>Contact</th><th>Sales POC</th><th>Project</th>
                 <th>Bank</th><th>Model</th><th>Loan Amt</th><th>Disbursed</th>
-                <th>Month</th><th>Status</th><th>Bank Income</th><th>Created By</th><th></th>
+                <th>Month</th><th>Status</th><th>Bank Income</th><th>Bank Receipt</th><th>Created By</th><th></th>
               </tr>
             </thead>
             <tbody>
@@ -467,6 +630,29 @@ export default function Cases() {
                     <td style={{ color:"var(--text-muted)", fontSize:12 }}>{c.month}</td>
                     <td><StatusTag status={status} /></td>
                     <td style={{ color:"var(--accent)", fontWeight:600 }}>{fmtShort(rev.bankIncome)}</td>
+                    <td style={{ fontSize:12 }}>
+                      {c.amountReceivedStatus === "Received" || Number(c.amountReceived) > 0 ? (
+                        <div>
+                          <span style={{ color:"var(--green)", fontWeight:600 }}>
+                            ✓ {fmtShort(c.amountReceived)}
+                          </span>
+                          {c.amountReceivedDate && (
+                            <div style={{ fontSize:10, color:"var(--text-faint)" }}>
+                              {fmtDate(c.amountReceivedDate)}
+                            </div>
+                          )}
+                          {c.amountReceivedBy && (
+                            <div style={{ fontSize:10, color:"var(--accent2)" }}>
+                              {c.amountReceivedBy}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <span style={{ color:"var(--amber)", fontSize:11, background:"#f59e0b15", padding:"2px 6px", borderRadius:4 }}>
+                          ⏳ Pending
+                        </span>
+                      )}
+                    </td>
                     <td style={{ fontSize:11, color:"var(--text-faint)" }}>{c.createdByName||"—"}</td>
                     <td onClick={e=>e.stopPropagation()}>
                       {canEdit && (
@@ -495,6 +681,7 @@ export default function Cases() {
           onEdit={canEdit ? ()=>startEdit(viewCase) : null}
           onUpdateSlot={canEdit ? updateSlot : null}
           onUpdateGross={canEdit ? updateGrossDisbursed : null}
+          onUpdateAccounts={canEditAccounts ? updateAccountsReceipt : null}
           activeTab={activeTab} setActiveTab={setActiveTab}
         />
       )}
@@ -524,7 +711,8 @@ export default function Cases() {
 }
 
 // ─── CASE DETAIL MODAL ────────────────────────────────────────────────────────
-function CaseModal({ c, bank, project, logs, logsLoading, onClose, onEdit, onUpdateSlot, onUpdateGross, activeTab, setActiveTab }) {
+function CaseModal({ c, bank, project, logs, logsLoading, onClose, onEdit, onUpdateSlot, onUpdateGross, onUpdateAccounts, activeTab, setActiveTab }) {
+  const { user } = useAuth();
   const fakBank = bank ? { ...bank, agreementType: c.loanPayoutType || bank.agreementType } : bank;
   const rev = calcCaseRevenue(c, fakBank, project);
   const isNet = (c.loanPayoutType || bank?.agreementType) === "Net";
@@ -537,6 +725,29 @@ function CaseModal({ c, bank, project, logs, logsLoading, onClose, onEdit, onUpd
   const saveDisb = () => {
     if (onUpdateGross) onUpdateGross(c, disbAmt, disbDate);
     setEditingDisb(false);
+  };
+
+  // Accounts team — inline edit for amount received in bank
+  const [editingAccounts, setEditingAccounts] = useState(false);
+  const [accStatus, setAccStatus] = useState(c.amountReceivedStatus || (c.amountReceived ? "Received" : "Pending"));
+  const [accAmt, setAccAmt]       = useState(c.amountReceived !== undefined && c.amountReceived !== "" ? c.amountReceived : "");
+  const [accDate, setAccDate]     = useState(c.amountReceivedDate || "");
+  const [accBy, setAccBy]         = useState(c.amountReceivedBy || "");
+  const [accUtr, setAccUtr]       = useState(c.utrRef || "");
+  const [accNotes, setAccNotes]   = useState(c.accountsRemarks || "");
+
+  const saveAccounts = () => {
+    if (onUpdateAccounts) {
+      onUpdateAccounts(c, {
+        amountReceivedStatus: accStatus,
+        amountReceived: accAmt,
+        amountReceivedDate: accDate,
+        amountReceivedBy: accBy,
+        utrRef: accUtr,
+        accountsRemarks: accNotes,
+      });
+    }
+    setEditingAccounts(false);
   };
 
   // FIX #1 — inline edit slot amounts on existing case
@@ -617,6 +828,133 @@ function CaseModal({ c, bank, project, logs, logsLoading, onClose, onEdit, onUpd
               )}
             </div>
 
+            {/* Accounts Team — Bank Receipt */}
+            <div style={{
+              background: "var(--bg-deep)",
+              border: "1px solid rgba(0, 212, 161, 0.25)",
+              borderRadius: 12,
+              padding: 16,
+              marginBottom: 14
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 16 }}>💳</span>
+                  <span style={{ fontWeight: 600, fontSize: 12, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                    Accounts Team — Amount Received in Bank
+                  </span>
+                </div>
+                {onUpdateAccounts && !editingAccounts && (
+                  <button
+                    onClick={() => {
+                      setAccStatus(c.amountReceivedStatus || (c.amountReceived ? "Received" : "Pending"));
+                      setAccAmt(c.amountReceived !== undefined && c.amountReceived !== "" ? c.amountReceived : (rev.bankIncome ? Math.round(rev.bankIncome) : ""));
+                      setAccDate(c.amountReceivedDate || new Date().toISOString().split("T")[0]);
+                      setAccBy(c.amountReceivedBy || user?.name || "");
+                      setAccUtr(c.utrRef || "");
+                      setAccNotes(c.accountsRemarks || "");
+                      setEditingAccounts(true);
+                    }}
+                    style={{ background: "var(--border)", border: "none", borderRadius: 6, color: "var(--text)", fontSize: 12, padding: "4px 10px", cursor: "pointer" }}
+                  >
+                    ✏️ Update Receipt
+                  </button>
+                )}
+              </div>
+
+              {editingAccounts ? (
+                <div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+                    <div>
+                      <label style={{ fontSize: 11, color: "var(--text-faint)", display: "block", marginBottom: 4 }}>Payment Status</label>
+                      <select value={accStatus} onChange={e => {
+                        const val = e.target.value;
+                        setAccStatus(val);
+                        if ((val === "Received" || val === "Partially Received") && !accDate) {
+                          setAccDate(new Date().toISOString().split("T")[0]);
+                        }
+                        if ((val === "Received" || val === "Partially Received") && !accBy) {
+                          setAccBy(user?.name || "");
+                        }
+                        if ((val === "Received" || val === "Partially Received") && (!accAmt || accAmt === 0) && rev.bankIncome) {
+                          setAccAmt(Math.round(rev.bankIncome));
+                        }
+                      }} style={{ width: "100%", padding: "7px 10px", fontSize: 13 }}>
+                        <option value="Pending">Pending</option>
+                        <option value="Received">Received</option>
+                        <option value="Partially Received">Partially Received</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 11, color: "var(--text-faint)", display: "block", marginBottom: 4 }}>Amount Received (₹)</label>
+                      <input type="number" value={accAmt} onChange={e => setAccAmt(e.target.value)} style={{ width: "100%", padding: "7px 10px", fontSize: 13 }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 11, color: "var(--text-faint)", display: "block", marginBottom: 4 }}>Received Date</label>
+                      <DatePicker value={accDate} onChange={e => setAccDate(e.target.value)} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 11, color: "var(--text-faint)", display: "block", marginBottom: 4 }}>Received By</label>
+                      <input type="text" value={accBy} onChange={e => setAccBy(e.target.value)} placeholder="Person / Accounts member name" style={{ width: "100%", padding: "7px 10px", fontSize: 13 }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 11, color: "var(--text-faint)", display: "block", marginBottom: 4 }}>Bank Ref / UTR No.</label>
+                      <input type="text" value={accUtr} onChange={e => setAccUtr(e.target.value)} placeholder="UTR / Transaction ID" style={{ width: "100%", padding: "7px 10px", fontSize: 13 }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 11, color: "var(--text-faint)", display: "block", marginBottom: 4 }}>Accounts Notes</label>
+                      <input type="text" value={accNotes} onChange={e => setAccNotes(e.target.value)} placeholder="Bank A/C / Notes" style={{ width: "100%", padding: "7px 10px", fontSize: 13 }} />
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button onClick={saveAccounts} style={{ padding: "7px 16px", background: "var(--accent)", border: "none", borderRadius: 7, color: "#060c18", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>Save</button>
+                    <button onClick={() => setEditingAccounts(false)} style={{ padding: "7px 16px", background: "var(--border)", border: "none", borderRadius: 7, color: "var(--text)", fontSize: 13, cursor: "pointer" }}>Cancel</button>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, fontSize: 13 }}>
+                  <div>
+                    <span style={{ color: "var(--text-faint)" }}>Status: </span>
+                    <span style={{
+                      color: c.amountReceivedStatus === "Received" ? "var(--green)" : c.amountReceivedStatus === "Partially Received" ? "var(--accent2)" : "var(--amber)",
+                      fontWeight: 600,
+                    }}>
+                      {c.amountReceivedStatus || (c.amountReceived ? "Received" : "Pending")}
+                    </span>
+                  </div>
+                  <div>
+                    <span style={{ color: "var(--text-faint)" }}>Amount in Bank: </span>
+                    <span style={{ color: "var(--accent)", fontWeight: 700 }}>
+                      {c.amountReceived ? fmtShort(c.amountReceived) : "₹0"}
+                    </span>
+                  </div>
+                  {c.amountReceivedDate && (
+                    <div>
+                      <span style={{ color: "var(--text-faint)" }}>Received On: </span>
+                      <span style={{ color: "var(--text-muted)" }}>{fmtDate(c.amountReceivedDate)}</span>
+                    </div>
+                  )}
+                  {c.amountReceivedBy && (
+                    <div>
+                      <span style={{ color: "var(--text-faint)" }}>Received By: </span>
+                      <span style={{ color: "var(--accent2)", fontWeight: 600 }}>{c.amountReceivedBy}</span>
+                    </div>
+                  )}
+                  {c.utrRef && (
+                    <div>
+                      <span style={{ color: "var(--text-faint)" }}>UTR / Ref: </span>
+                      <span style={{ color: "var(--text-muted)", fontFamily: "monospace" }}>{c.utrRef}</span>
+                    </div>
+                  )}
+                  {c.accountsRemarks && (
+                    <div style={{ gridColumn: "span 2" }}>
+                      <span style={{ color: "var(--text-faint)" }}>Notes: </span>
+                      <span style={{ color: "var(--text-muted)" }}>{c.accountsRemarks}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             {/* GROSS disbursement — FIX #4 editable */}
             {!isNet && (
               <div style={{ background:"var(--bg-deep)", border:"1px solid var(--border)", borderRadius:10, padding:14, marginBottom:14 }}>
@@ -638,7 +976,7 @@ function CaseModal({ c, bank, project, logs, logsLoading, onClose, onEdit, onUpd
                       </div>
                       <div>
                         <label>Disbursement Date</label>
-                        <input type="date" value={disbDate} onChange={e=>setDisbDate(e.target.value)} />
+                        <DatePicker value={disbDate} onChange={e=>setDisbDate(e.target.value)} />
                       </div>
                     </div>
                     <div style={{ display:"flex", gap:8 }}>

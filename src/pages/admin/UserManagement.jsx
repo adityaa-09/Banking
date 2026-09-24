@@ -7,6 +7,7 @@ const BLANK = { name:"", username:"", password:"", email:"", phone:"", role:"exe
 const ROLE_META = {
   admin:     { label:"Admin",     color:"#ef4444", bg:"#ef444420", desc:"Full access — manage everything including users" },
   executive: { label:"Executive", color:"#00d4a1", bg:"#00d4a120", desc:"Add/edit all data. No user management." },
+  finance:   { label:"Finance",   color:"#06b6d4", bg:"#06b6d420", desc:"View all data. Can only update Accounts / Payment Received in cases." },
   viewer:    { label:"Viewer",    color:"#6366f1", bg:"#6366f120", desc:"Read-only — cannot add or edit anything." },
 };
 
@@ -75,6 +76,7 @@ export default function UserManagement() {
               <select value={form.role} onChange={f("role")}>
                 <option value="admin">Admin</option>
                 <option value="executive">Executive</option>
+                <option value="finance">Finance</option>
                 <option value="viewer">Viewer</option>
               </select>
             </FormField>

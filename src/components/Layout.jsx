@@ -3,22 +3,23 @@ import { useAuth } from "../context/AuthContext";
 // Logo loaded from public folder
 
 const ALL_NAV = [
-  { id: "dashboard",  label: "Dashboard",           icon: "📊", roles: ["admin","executive","viewer"] },
-  { id: "projects",   label: "Projects / Mandates", icon: "🏗️", roles: ["admin","executive","viewer"] },
-  { id: "banks",      label: "Banks & Agreements",  icon: "🏦", roles: ["admin","executive","viewer"] },
-  { id: "apf",        label: "APF Numbers",         icon: "🔢", roles: ["admin","executive","viewer"] },
-  { id: "cases",      label: "Case Management",     icon: "📋", roles: ["admin","executive","viewer"] },
-  { id: "revenue",    label: "Revenue Tracker",     icon: "📈", roles: ["admin","executive","viewer"] },
-  { id: "userreport", label: "User Reports",        icon: "👤", roles: ["admin","executive","viewer"] },
-  { id: "exportbackup",label: "Export & Backup",    icon: "📤", roles: ["admin","executive"] },
-  { id: "activitylog", label: "Activity Log",        icon: "📜", roles: ["admin","executive"] },
-  { id: "users",      label: "User Management",     icon: "👥", roles: ["admin"] },
+  { id: "dashboard",   label: "Dashboard",           icon: "📊", roles: ["admin","executive","viewer","finance"] },
+  { id: "projects",    label: "Projects / Mandates", icon: "🏗️", roles: ["admin","executive","viewer","finance"] },
+  { id: "banks",       label: "Banks & Agreements",  icon: "🏦", roles: ["admin","executive","viewer","finance"] },
+  { id: "apf",         label: "APF Numbers",         icon: "🔢", roles: ["admin","executive","viewer","finance"] },
+  { id: "cases",       label: "Case Management",     icon: "📋", roles: ["admin","executive","viewer","finance"] },
+  { id: "revenue",     label: "Revenue Tracker",     icon: "📈", roles: ["admin","executive","viewer","finance"] },
+  { id: "userreport",  label: "User Reports",        icon: "👤", roles: ["admin","executive","viewer","finance"] },
+  { id: "exportbackup",label: "Export & Backup",     icon: "📤", roles: ["admin","executive","finance"] },
+  { id: "activitylog", label: "Activity Log",        icon: "📜", roles: ["admin","executive","finance"] },
+  { id: "users",       label: "User Management",     icon: "👥", roles: ["admin"] },
 ];
 
 const ROLE_BADGE = {
   admin:     { label: "Admin",     color: "#ef4444", bg: "#ef444420" },
   executive: { label: "Executive", color: "#00d4a1", bg: "#00d4a120" },
   viewer:    { label: "Viewer",    color: "#6366f1", bg: "#6366f120" },
+  finance:   { label: "Finance",   color: "#06b6d4", bg: "#06b6d420" },
 };
 
 export default function Layout({ activeTab, setActiveTab, children }) {

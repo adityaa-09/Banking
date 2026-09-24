@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useApp } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
 import {
-  SectionHeader, Btn, FormField, FormPanel, EmptyState, Modal, DetailGrid,
+  SectionHeader, Btn, FormField, FormPanel, EmptyState, Modal, DetailGrid, DatePicker,
 } from "../components/UI";
 import { fmtDate } from "../utils/helpers";
 
@@ -140,7 +140,7 @@ export default function Banks() {
               </select>
             </FormField>
             <FormField label="Commission %"><input type="number" step="0.01" value={form.agreementPct} onChange={f("agreementPct")} placeholder="0.50" /></FormField>
-            <FormField label="Agreement Date"><input type="date" value={form.agreementDate} onChange={f("agreementDate")} /></FormField>
+            <FormField label="Agreement Date"><DatePicker value={form.agreementDate} onChange={f("agreementDate")} /></FormField>
             <FormField label="Agreement File Name"><input value={form.agreementFile} onChange={f("agreementFile")} placeholder="Agreement_2024.pdf" /></FormField>
             <FormField label="Google Drive Link (Agreement PDF)" span={2}>
               <input value={form.driveLink} onChange={f("driveLink")} placeholder="https://drive.google.com/..." />

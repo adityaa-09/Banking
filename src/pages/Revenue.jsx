@@ -33,6 +33,7 @@ export default function Revenue() {
 
   const { monthData, bankData, projectData, totals } = useMemo(() => {
     let totalBankIncome=0, totalDevPayout=0, totalProfit=0, totalVol=0;
+    let totalReceivedInBank=0;
     const monthMap = {};
 
     filtered.forEach(c => {
@@ -44,6 +45,11 @@ export default function Revenue() {
       totalDevPayout  += rev.devPayout;
       totalProfit     += rev.profit;
       if (c.disbursed) totalVol += c.disbursedAmt || 0;
+
+      // Track amount actually received in bank account
+      if (c.amountReceivedStatus === "Received" || Number(c.amountReceived) > 0) {
+        totalReceivedInBank += Number(c.amountReceived) || 0;
+      }
 
       // FIX: Group profit by DISBURSEMENT month, not case month
       // Only count months where there's actual income (disbursed)
@@ -82,7 +88,7 @@ export default function Revenue() {
       return { project, income:pIncome, payout:pPayout, profit:pProfit, cases:pCases.length };
     }).filter(d=>d.cases>0).sort((a,b)=>b.profit-a.profit);
 
-    return { monthData, bankData, projectData, totals:{ totalBankIncome, totalDevPayout, totalProfit, totalVol,
+    return { monthData, bankData, projectData, totals:{ totalBankIncome, totalDevPayout, totalProfit, totalVol, totalReceivedInBank,
       netCount: filtered.filter(c=>(c.loanPayoutType||banks.find(b=>b.id===c.bankId)?.agreementType)==="Net").length,
       grossCount: filtered.filter(c=>(c.loanPayoutType||banks.find(b=>b.id===c.bankId)?.agreementType)==="Gross").length,
     }};
@@ -108,6 +114,8 @@ export default function Revenue() {
         <span style={{ color:"var(--text-dim)" }}>→</span>
         <span style={{ color:"var(--accent)", fontWeight:600 }}>Bank pays us X%</span>
         <span style={{ color:"var(--text-dim)" }}>→</span>
+        <span style={{ color:"var(--green)", fontWeight:600 }}>Received in A/C</span>
+        <span style={{ color:"var(--text-dim)" }}>→</span>
         <span style={{ color:"#f87171", fontWeight:600 }}>We pay developer Y%</span>
         <span style={{ color:"var(--text-dim)" }}>→</span>
         <span style={{ color:"var(--green)", fontWeight:700 }}>Profit = X − Y</span>
@@ -118,9 +126,16 @@ export default function Revenue() {
       </div>
 
       {/* KPIs */}
-      <div className="grid-4" style={{ marginBottom:24 }}>
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(200px, 1fr))", gap:16, marginBottom:24 }}>
         <KpiCard label="Disbursed Volume" value={fmtShort(totals.totalVol)}        icon="🏦" color="var(--accent2)" />
-        <KpiCard label="Bank Income"      value={fmtShort(totals.totalBankIncome)} icon="💰" color="var(--accent)"  />
+        <KpiCard label="Bank Income (Expected)" value={fmtShort(totals.totalBankIncome)} icon="💰" color="var(--accent)"  />
+        <KpiCard
+          label="Received in Bank"
+          value={fmtShort(totals.totalReceivedInBank)}
+          icon="💳"
+          color="#10b981"
+          sub={`${totals.totalBankIncome > 0 ? Math.round((totals.totalReceivedInBank / totals.totalBankIncome) * 100) : 0}% of Bank Income collected`}
+        />
         <KpiCard label="Developer Payout" value={fmtShort(totals.totalDevPayout)}  icon="🏗️" color="#f87171"        />
         <KpiCard label="Net Profit"       value={fmtShort(totals.totalProfit)}      icon="📈" color="var(--green)"   />
       </div>

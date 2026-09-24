@@ -30,21 +30,24 @@ export function AuthProvider({ children }) {
       sessionStorage.setItem("bw_user", JSON.stringify(session));
       return true;
     } catch (e) {
-      setError("Login failed. Check Firebase config.");
+      console.error("Login failed:", e);
+      setError(`Login failed: ${e.code ? `[${e.code}] ` : ""}${e.message || "Check Firebase config."}`);
       return false;
     }
   };
 
   const logout = () => { setUser(null); sessionStorage.removeItem("bw_user"); };
 
-  const isAdmin   = user?.role === "admin";
-  const isExec    = user?.role === "executive";
-  const isViewer  = user?.role === "viewer";
-  const canEdit   = isAdmin || isExec;
-  const canManageUsers = isAdmin;
+  const isAdmin         = user?.role === "admin";
+  const isExec          = user?.role === "executive";
+  const isViewer        = user?.role === "viewer";
+  const isFinance       = user?.role === "finance";
+  const canEdit         = isAdmin || isExec;
+  const canEditAccounts = isAdmin || isExec || isFinance;
+  const canManageUsers  = isAdmin;
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, login, logout, isAdmin, isExec, isViewer, canEdit, canManageUsers }}>
+    <AuthContext.Provider value={{ user, loading, error, login, logout, isAdmin, isExec, isViewer, isFinance, canEdit, canEditAccounts, canManageUsers }}>
       {children}
     </AuthContext.Provider>
   );
