@@ -6,6 +6,7 @@ import {
   EmptyState, TableCard, FilterSelect, Modal, DetailGrid, DatePicker,
 } from "../components/UI";
 import { fmtShort, fmtDate } from "../utils/helpers";
+import { Trash2, Hash, Landmark, FileText, Pencil } from "lucide-react";
 
 const BLANK = { projectId:"", bankId:"", apfNumber:"", approvedAmt:"", validTill:"", approvedOn:"", status:"Active", remarks:"" };
 
@@ -68,14 +69,15 @@ export default function APFNumbers() {
           ["Status",          a.status],
         ]} />
         {a.remarks && (
-          <div style={{ background:"var(--bg-deep)", borderRadius:8, padding:"10px 14px", fontSize:13, color:"var(--text-muted)", marginBottom:16 }}>
-            📝 {a.remarks}
+          <div style={{ background:"var(--bg-deep)", borderRadius:8, padding:"10px 14px", fontSize:13, color:"var(--text-muted)", marginBottom:16, display:"flex", alignItems:"flex-start", gap:8 }}>
+            <FileText size={15} style={{ color:"var(--accent)", marginTop:2, flexShrink:0 }} />
+            <span>{a.remarks}</span>
           </div>
         )}
         {canEdit && (
           <div style={{ display:"flex", gap:10, marginTop:16 }}>
-            <Btn variant="primary" onClick={() => startEdit(a)}>✏️ Edit</Btn>
-            <Btn variant="danger"  onClick={() => { closeModal(); setDeleteTarget(a); }}>🗑️ Delete</Btn>
+            <Btn variant="primary" onClick={() => startEdit(a)}><Pencil size={13} style={{ marginRight:6 }} /> Edit</Btn>
+            <Btn variant="danger"  onClick={() => { closeModal(); setDeleteTarget(a); }}><Trash2 size={13} style={{ marginRight:6 }} /> Delete</Btn>
           </div>
         )}
       </div>
@@ -164,7 +166,7 @@ export default function APFNumbers() {
       {loading
         ? <div style={{ textAlign:"center", padding:60, color:"var(--text-faint)" }}>Loading…</div>
         : filtered.length === 0
-          ? <EmptyState message="No APF records found." />
+          ? <EmptyState icon={<Hash size={32} />} message="No APF records found." />
           : (
             <TableCard>
               <table>
@@ -182,7 +184,12 @@ export default function APFNumbers() {
                           <div style={{ fontSize:13 }}>{project?.name}</div>
                           <div style={{ fontSize:11, color:"var(--text-faint)" }}>{project?.location}</div>
                         </td>
-                        <td>{bank?.logo} {bank?.name}</td>
+                        <td>
+                          <span style={{ display:"inline-flex", alignItems:"center", gap:6 }}>
+                            <Landmark size={14} style={{ color:"var(--accent)", flexShrink:0 }} />
+                            <span>{bank?.name}</span>
+                          </span>
+                        </td>
                         <td style={{ color:"var(--accent2)", fontWeight:600 }}>{fmtShort(a.approvedAmt)}</td>
                         <td style={{ color:"var(--text-muted)" }}>{fmtDate(a.approvedOn)}</td>
                         <td style={{ color:a.status==="Expired"?"var(--red)":"var(--text-muted)" }}>{fmtDate(a.validTill)}</td>
@@ -190,8 +197,9 @@ export default function APFNumbers() {
                         <td onClick={e=>e.stopPropagation()}>
                           {canEdit && (
                             <button onClick={()=>setDeleteTarget(a)}
-                              style={{ background:"#ef444420", border:"1px solid #ef444440", borderRadius:6, color:"#f87171", fontSize:11, padding:"4px 10px", cursor:"pointer" }}>
-                              🗑️
+                              title="Delete APF"
+                              style={{ background:"#ef444415", border:"1px solid #ef444435", borderRadius:6, color:"#f87171", padding:"5px 8px", cursor:"pointer", display:"inline-flex", alignItems:"center", justifyContent:"center" }}>
+                              <Trash2 size={13} />
                             </button>
                           )}
                         </td>
@@ -210,7 +218,9 @@ export default function APFNumbers() {
         <div className="overlay" onClick={()=>setDeleteTarget(null)}>
           <div style={{ background:"var(--bg-card)", border:"1px solid #ef444450", borderRadius:16, padding:28, maxWidth:400, width:"90%" }}
             onClick={e=>e.stopPropagation()}>
-            <div style={{ fontSize:32, marginBottom:12 }}>🗑️</div>
+            <div style={{ width:48, height:48, borderRadius:12, background:"#ef444420", border:"1px solid #ef444440", display:"flex", alignItems:"center", justifyContent:"center", color:"#ef4444", marginBottom:16 }}>
+              <Trash2 size={24} />
+            </div>
             <div style={{ fontFamily:"var(--font-head)", fontSize:18, fontWeight:700, marginBottom:8 }}>Delete APF: {deleteTarget.apfNumber}?</div>
             <div style={{ fontSize:13, color:"var(--text-faint)", marginBottom:24 }}>This APF entry will be permanently deleted.</div>
             <div style={{ display:"flex", gap:10 }}>

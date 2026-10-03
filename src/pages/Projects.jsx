@@ -6,6 +6,7 @@ import {
   EmptyState, Modal, DetailGrid, DatePicker,
 } from "../components/UI";
 import { fmtDate } from "../utils/helpers";
+import { MapPin, Building, Trash2, Sparkles, FileText, Pencil } from "lucide-react";
 
 const BLANK = {
   name: "", developer: "", location: "", type: "Residential",
@@ -78,14 +79,15 @@ export default function Projects() {
           ["Cases",             pCases.length],
         ]} />
         {p.notes && (
-          <div style={{ background:"var(--bg-deep)", borderRadius:8, padding:"10px 14px", fontSize:13, color:"var(--text-muted)", marginBottom:16 }}>
-            📝 {p.notes}
+          <div style={{ background:"var(--bg-deep)", borderRadius:8, padding:"10px 14px", fontSize:13, color:"var(--text-muted)", marginBottom:16, display:"flex", alignItems:"flex-start", gap:8 }}>
+            <FileText size={15} style={{ color:"var(--accent)", marginTop:2, flexShrink:0 }} />
+            <span>{p.notes}</span>
           </div>
         )}
         {canEdit && (
           <div style={{ display:"flex", gap:10, marginTop:16 }}>
-            <Btn variant="primary" onClick={() => startEdit(p)}>✏️ Edit</Btn>
-            <Btn variant="danger"  onClick={() => { closeModal(); setDeleteTarget(p); }}>🗑️ Delete</Btn>
+            <Btn variant="primary" onClick={() => startEdit(p)}><Pencil size={13} style={{ marginRight:6 }} /> Edit</Btn>
+            <Btn variant="danger"  onClick={() => { closeModal(); setDeleteTarget(p); }}><Trash2 size={13} style={{ marginRight:6 }} /> Delete</Btn>
           </div>
         )}
       </div>
@@ -138,12 +140,12 @@ export default function Projects() {
             <FormField label="Launch Date"><DatePicker value={form.launchDate} onChange={f("launchDate")} /></FormField>
             <FormField label="Developer Payout %">
               <input type="number" step="0.01" value={form.developerPayoutPct} onChange={f("developerPayoutPct")}
-                placeholder="e.g. 0.25 (% of disbursed amt we pay developer)" />
+                placeholder="e.g. 20 (% of bank income paid to developer)" />
             </FormField>
             <FormField label="Notes / Remarks" span={3}><textarea rows={2} value={form.notes} onChange={f("notes")} /></FormField>
           </div>
-          <div style={{ marginTop:10, padding:"10px 14px", background:"var(--bg-deep)", borderRadius:8, fontSize:12, color:"var(--text-faint)" }}>
-            💡 Revenue flow: Bank pays us X% of disbursed amt → We pay this developer {form.developerPayoutPct||"Y"}% → Profit = X − Y
+          <div style={{ marginTop:10, padding:"10px 14px", background:"var(--bg-deep)", borderRadius:8, fontSize:12, color:"var(--text-faint)", display:"flex", alignItems:"center", gap:8 }}>
+            <Sparkles size={14} color="var(--amber)" /> Revenue flow: Bank pays us commission (% of disbursed loan) → We pay developer {form.developerPayoutPct||"Y"}% from that bank income → Net Profit = Bank Income − Dev Payout
           </div>
         </FormPanel>
       )}
@@ -174,8 +176,10 @@ export default function Projects() {
                   </div>
                   <div style={{ fontWeight:700, fontSize:15, marginBottom:3, lineHeight:1.3 }}>{p.name}</div>
                   <div style={{ fontSize:12, color:"var(--text-faint)", marginBottom:14 }}>{p.developer}</div>
-                  <div style={{ fontSize:12, color:"var(--text-muted)", marginBottom:12 }}>
-                    📍 {p.location} &nbsp;·&nbsp; 🔢 {p.totalUnits || "—"} units
+                  <div style={{ fontSize:12, color:"var(--text-muted)", marginBottom:12, display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
+                    <span style={{ display:"inline-flex", alignItems:"center", gap:4 }}><MapPin size={12} color="var(--text-dim)" /> {p.location}</span>
+                    <span>·</span>
+                    <span style={{ display:"inline-flex", alignItems:"center", gap:4 }}><Building size={12} color="var(--text-dim)" /> {p.totalUnits || "—"} units</span>
                   </div>
                   <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
                     <div style={{ display:"inline-flex", alignItems:"center", gap:6, background:"#ec489920", border:"1px solid #ec489940", borderRadius:8, padding:"5px 12px" }}>
@@ -184,8 +188,8 @@ export default function Projects() {
                     </div>
                     {canEdit && (
                       <button onClick={e => { e.stopPropagation(); setDeleteTarget(p); }}
-                        style={{ background:"#ef444420", border:"1px solid #ef444440", borderRadius:6, color:"#f87171", fontSize:11, padding:"4px 10px", cursor:"pointer" }}>
-                        🗑️
+                        style={{ background:"#ef444420", border:"1px solid #ef444440", borderRadius:6, color:"#f87171", fontSize:11, padding:"6px 8px", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                        <Trash2 size={13} />
                       </button>
                     )}
                   </div>
@@ -201,7 +205,9 @@ export default function Projects() {
         <div className="overlay" onClick={() => setDeleteTarget(null)}>
           <div style={{ background:"var(--bg-card)", border:"1px solid #ef444450", borderRadius:16, padding:28, maxWidth:400, width:"90%", boxShadow:"0 24px 60px rgba(0,0,0,0.5)" }}
             onClick={e => e.stopPropagation()}>
-            <div style={{ fontSize:32, marginBottom:12 }}>🗑️</div>
+            <div style={{ width:48, height:48, borderRadius:12, background:"rgba(239,68,68,0.15)", border:"1px solid rgba(239,68,68,0.3)", display:"flex", alignItems:"center", justifyContent:"center", color:"#f87171", marginBottom:16 }}>
+              <Trash2 size={24} />
+            </div>
             <div style={{ fontFamily:"var(--font-head)", fontSize:18, fontWeight:700, marginBottom:8 }}>Delete: {deleteTarget.name}?</div>
             <div style={{ fontSize:13, color:"var(--text-faint)", marginBottom:24, lineHeight:1.6 }}>
               This will permanently delete the project. Cases linked to this project will lose their project reference.

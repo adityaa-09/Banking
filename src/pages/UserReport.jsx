@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { useApp } from "../context/AppContext";
 import { SectionHeader, KpiCard, FilterSelect, TableCard } from "../components/UI";
 import { fmtShort, calcCaseRevenue, statusTag } from "../utils/helpers";
+import { Users, FileText, Coins, TrendingUp, Clock } from "lucide-react";
 
 export default function UserReport() {
   const { cases, banks, projects, users } = useApp();
@@ -46,10 +47,10 @@ export default function UserReport() {
       {!selectedUser && (
         <>
           <div className="grid-4" style={{ marginBottom:24 }}>
-            <KpiCard label="Team Members" value={userStats.length}                                 icon="👥" color="var(--accent2)" />
-            <KpiCard label="Total Cases"  value={cases.length}                                     icon="📋" color="var(--amber)"   />
-            <KpiCard label="Total Income" value={fmtShort(userStats.reduce((s,u)=>s+u.income,0))} icon="💰" color="var(--accent)"  />
-            <KpiCard label="Total Profit" value={fmtShort(userStats.reduce((s,u)=>s+u.profit,0))} icon="📈" color="var(--green)"   />
+            <KpiCard label="Team Members" value={userStats.length}                                 icon={<Users size={18} />}      color="var(--accent2)" />
+            <KpiCard label="Total Cases"  value={cases.length}                                     icon={<FileText size={18} />}   color="var(--amber)"   />
+            <KpiCard label="Total Income" value={fmtShort(userStats.reduce((s,u)=>s+u.income,0))} icon={<Coins size={18} />}      color="var(--accent)"  />
+            <KpiCard label="Total Profit" value={fmtShort(userStats.reduce((s,u)=>s+u.profit,0))} icon={<TrendingUp size={18} />} color="var(--green)"   />
           </div>
           <TableCard>
             <table>
@@ -101,10 +102,10 @@ export default function UserReport() {
             </div>
           </div>
           <div className="grid-4" style={{ marginBottom:20 }}>
-            <KpiCard label="Total Cases"  value={selectedStats.caseCount}                icon="📋" color="var(--accent2)" />
-            <KpiCard label="In Process"   value={selectedStats.statuses["In Process"]||0} icon="⏳" color="var(--amber)"   />
-            <KpiCard label="Bank Income"  value={fmtShort(selectedStats.income)}          icon="💰" color="var(--accent)"  />
-            <KpiCard label="Net Profit"   value={fmtShort(selectedStats.profit)}          icon="📈" color="var(--green)"   />
+            <KpiCard label="Total Cases"  value={selectedStats.caseCount}                icon={<FileText size={18} />}   color="var(--accent2)" />
+            <KpiCard label="In Process"   value={selectedStats.statuses["In Process"]||0} icon={<Clock size={18} />}      color="var(--amber)"   />
+            <KpiCard label="Bank Income"  value={fmtShort(selectedStats.income)}          icon={<Coins size={18} />}      color="var(--accent)"  />
+            <KpiCard label="Net Profit"   value={fmtShort(selectedStats.profit)}          icon={<TrendingUp size={18} />} color="var(--green)"   />
           </div>
           <TableCard>
             <table>

@@ -3,6 +3,16 @@ import { useApp } from "../context/AppContext";
 import { SectionHeader, KpiCard } from "../components/UI";
 import { fmtShort, calcCaseRevenue, statusTag } from "../utils/helpers";
 import BackupReminder from "./BackupReminder";
+import {
+  FolderKanban,
+  Landmark,
+  FileText,
+  CheckCircle2,
+  Coins,
+  TrendingUp,
+  Clock,
+  XCircle,
+} from "lucide-react";
 
 const StatusTag = ({ status }) => {
   const { background, color } = statusTag(status);
@@ -63,14 +73,14 @@ export default function Dashboard() {
       <BackupReminder />
 
       <div className="grid-4" style={{ marginBottom:24 }}>
-        <KpiCard label="Active Projects"      value={activeProjects.length}       icon="🏗️" color="var(--purple)" />
-        <KpiCard label="Partner Banks"        value={banks.length}                icon="🏦" color="var(--accent2)" />
-        <KpiCard label="Total Cases"          value={stats.totalCases}            icon="📋" color="var(--amber)" />
-        <KpiCard label="Sanctioned"           value={stats.sanctioned}            icon="✅" color="var(--green)" />
-        <KpiCard label="Bank Income"          value={fmtShort(stats.totalIncome)} icon="💰" color="var(--accent)" />
-        <KpiCard label="Net Profit"           value={fmtShort(stats.totalProfit)} icon="📈" color="var(--green)" />
-        <KpiCard label="Net — Awaiting Bank"  value={stats.grossPending}          icon="⏳" color="var(--amber)" sub="Slots disbursed, bank not paid" />
-        <KpiCard label="Rejected"             value={stats.rejected}              icon="❌" color="var(--red)" />
+        <KpiCard label="Active Projects"      value={activeProjects.length}       icon={<FolderKanban size={18} />} color="var(--purple)" />
+        <KpiCard label="Partner Banks"        value={banks.length}                icon={<Landmark size={18} />}     color="var(--accent2)" />
+        <KpiCard label="Total Cases"          value={stats.totalCases}            icon={<FileText size={18} />}     color="var(--amber)" />
+        <KpiCard label="Sanctioned"           value={stats.sanctioned}            icon={<CheckCircle2 size={18} />} color="var(--green)" />
+        <KpiCard label="Bank Income"          value={fmtShort(stats.totalIncome)} icon={<Coins size={18} />}        color="var(--accent)" />
+        <KpiCard label="Net Profit"           value={fmtShort(stats.totalProfit)} icon={<TrendingUp size={18} />}   color="var(--green)" />
+        <KpiCard label="Net — Awaiting Bank"  value={stats.grossPending}          icon={<Clock size={18} />}        color="var(--amber)" sub="Slots disbursed, bank not paid" />
+        <KpiCard label="Rejected"             value={stats.rejected}              icon={<XCircle size={18} />}      color="var(--red)" />
       </div>
 
       {/* Model split */}

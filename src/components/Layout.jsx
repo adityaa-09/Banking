@@ -1,18 +1,32 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
-// Logo loaded from public folder
+import {
+  LayoutDashboard,
+  FolderKanban,
+  Landmark,
+  Hash,
+  Briefcase,
+  CircleDollarSign,
+  BarChart3,
+  HardDriveDownload,
+  History,
+  Users,
+  ChevronLeft,
+  ChevronRight,
+  LogOut,
+} from "lucide-react";
 
 const ALL_NAV = [
-  { id: "dashboard",   label: "Dashboard",           icon: "📊", roles: ["admin","executive","viewer","finance"] },
-  { id: "projects",    label: "Projects / Mandates", icon: "🏗️", roles: ["admin","executive","viewer","finance"] },
-  { id: "banks",       label: "Banks & Agreements",  icon: "🏦", roles: ["admin","executive","viewer","finance"] },
-  { id: "apf",         label: "APF Numbers",         icon: "🔢", roles: ["admin","executive","viewer","finance"] },
-  { id: "cases",       label: "Case Management",     icon: "📋", roles: ["admin","executive","viewer","finance"] },
-  { id: "revenue",     label: "Revenue Tracker",     icon: "📈", roles: ["admin","executive","viewer","finance"] },
-  { id: "userreport",  label: "User Reports",        icon: "👤", roles: ["admin","executive","viewer","finance"] },
-  { id: "exportbackup",label: "Export & Backup",     icon: "📤", roles: ["admin","executive","finance"] },
-  { id: "activitylog", label: "Activity Log",        icon: "📜", roles: ["admin","executive","finance"] },
-  { id: "users",       label: "User Management",     icon: "👥", roles: ["admin"] },
+  { id: "dashboard",    label: "Dashboard",           Icon: LayoutDashboard,   roles: ["admin","executive","viewer","finance"] },
+  { id: "projects",     label: "Projects / Mandates", Icon: FolderKanban,       roles: ["admin","executive","viewer","finance"] },
+  { id: "banks",        label: "Banks & Agreements",  Icon: Landmark,           roles: ["admin","executive","viewer","finance"] },
+  { id: "apf",          label: "APF Numbers",         Icon: Hash,               roles: ["admin","executive","viewer","finance"] },
+  { id: "cases",        label: "Case Management",     Icon: Briefcase,          roles: ["admin","executive","viewer","finance"] },
+  { id: "revenue",      label: "Revenue Tracker",     Icon: CircleDollarSign,   roles: ["admin","executive","viewer","finance"] },
+  { id: "userreport",   label: "User Reports",        Icon: BarChart3,          roles: ["admin","executive","viewer","finance"] },
+  { id: "exportbackup", label: "Export & Backup",     Icon: HardDriveDownload,  roles: ["admin","executive","finance"] },
+  { id: "activitylog",  label: "Activity Log",        Icon: History,            roles: ["admin","executive","finance"] },
+  { id: "users",        label: "User Management",     Icon: Users,              roles: ["admin"] },
 ];
 
 const ROLE_BADGE = {
@@ -41,39 +55,47 @@ export default function Layout({ activeTab, setActiveTab, children }) {
       }}>
         {/* Logo */}
         <div style={{
-          padding: collapsed ? "14px 10px" : "14px 16px",
+          padding: collapsed ? "16px 10px" : "18px 16px 14px",
           borderBottom: "1px solid var(--border-lt)",
           display: "flex",
-          alignItems: "center",
-          gap: 10,
-          minHeight: 64,
+          flexDirection: "column",
+          alignItems: collapsed ? "center" : "flex-start",
+          justifyContent: "center",
+          minHeight: 68,
         }}>
-          <img
-            src="/logo.png"
-            alt="BeyondWalls"
-            onError={e => { e.target.style.display="none"; e.target.nextSibling.style.display="flex"; }}
-            style={{
-              width: 38,
-              height: 38,
-              objectFit: "contain",
-              flexShrink: 0,
-              borderRadius: 7,
-              background: "#ffffff",
-              padding: 4,
-            }}
-          />
-          {!collapsed && (
-            <div style={{ overflow: "hidden" }}>
+          {collapsed ? (
+            <img
+              src="/beyondwalls-icon.png"
+              alt="BeyondWalls"
+              style={{
+                width: 32,
+                height: 32,
+                objectFit: "contain",
+                display: "block",
+              }}
+            />
+          ) : (
+            <div style={{ width: "100%" }}>
+              <img
+                src="/beyondwalls-dark.png"
+                alt="BeyondWalls"
+                style={{
+                  height: 28,
+                  maxWidth: "100%",
+                  objectFit: "contain",
+                  display: "block",
+                }}
+              />
               <div style={{
-                fontFamily: "var(--font-head)",
+                fontSize: 9,
+                color: "var(--accent)",
+                letterSpacing: "0.14em",
                 fontWeight: 700,
-                fontSize: 15,
-                letterSpacing: "-0.02em",
-                whiteSpace: "nowrap",
-                color: "var(--text)",
-              }}>BW Loan's</div>
-              <div style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.1em", whiteSpace: "nowrap" }}>
-                BANKING MANAGEMENT
+                marginTop: 6,
+                paddingLeft: 2,
+                textTransform: "uppercase",
+              }}>
+                Banking Management
               </div>
             </div>
           )}
@@ -83,6 +105,7 @@ export default function Layout({ activeTab, setActiveTab, children }) {
         <nav style={{ flex: 1, padding: "12px 8px", overflowY: "auto" }}>
           {NAV_ITEMS.map(item => {
             const active = activeTab === item.id;
+            const NavIcon = item.Icon;
             return (
               <button
                 key={item.id}
@@ -112,7 +135,9 @@ export default function Layout({ activeTab, setActiveTab, children }) {
                 onMouseEnter={e => { if (!active) { e.currentTarget.style.background = "#1a2744"; e.currentTarget.style.color = "var(--text)"; }}}
                 onMouseLeave={e => { if (!active) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-muted)"; }}}
               >
-                <span style={{ fontSize: 16, flexShrink: 0 }}>{item.icon}</span>
+                <span style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 20, height: 20, flexShrink: 0, color: active ? "var(--accent)" : "var(--text-dim)" }}>
+                  <NavIcon size={17} strokeWidth={active ? 2.2 : 1.8} />
+                </span>
                 {!collapsed && <span>{item.label}</span>}
               </button>
             );
@@ -130,14 +155,21 @@ export default function Layout({ activeTab, setActiveTab, children }) {
               border: "none",
               color: "var(--text-faint)",
               cursor: "pointer",
-              fontSize: 14,
+              fontSize: 13,
               display: "flex",
               alignItems: "center",
-              justifyContent: collapsed ? "center" : "flex-end",
+              justifyContent: collapsed ? "center" : "space-between",
               gap: 6,
             }}
           >
-            {collapsed ? "→" : <><span style={{ fontSize: 12 }}>Collapse</span><span>←</span></>}
+            {collapsed ? (
+              <ChevronRight size={16} />
+            ) : (
+              <>
+                <span style={{ fontSize: 12, fontWeight: 500 }}>Collapse</span>
+                <ChevronLeft size={16} />
+              </>
+            )}
           </button>
         </div>
 
@@ -150,15 +182,16 @@ export default function Layout({ activeTab, setActiveTab, children }) {
                 {ROLE_BADGE[user.role]?.label}
               </span>
             </div>
-            <button onClick={logout} style={{ width:"100%", padding:"8px 0", background:"#ef444418", border:"1px solid #ef444430", borderRadius:8, color:"#f87171", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"var(--font-body)" }}>
+            <button onClick={logout} style={{ width:"100%", padding:"8px 0", background:"#ef444418", border:"1px solid #ef444430", borderRadius:8, color:"#f87171", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"var(--font-body)", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
+              <LogOut size={13} />
               Sign Out
             </button>
           </div>
         )}
         {collapsed && user && (
           <div style={{ borderTop:"1px solid var(--border-lt)", padding:"8px", display:"flex", justifyContent:"center" }}>
-            <button onClick={logout} title="Sign Out" style={{ width:36, height:36, background:"#ef444418", border:"1px solid #ef444430", borderRadius:8, color:"#f87171", fontSize:16, cursor:"pointer" }}>
-              ⏻
+            <button onClick={logout} title="Sign Out" style={{ width:36, height:36, background:"#ef444418", border:"1px solid #ef444430", borderRadius:8, color:"#f87171", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer" }}>
+              <LogOut size={16} />
             </button>
           </div>
         )}
@@ -178,30 +211,40 @@ export default function Layout({ activeTab, setActiveTab, children }) {
           flexShrink: 0,
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <img src="/logo.png" alt="BW"
-            onError={e => { e.target.style.display="none"; e.target.nextSibling.style.display="flex"; }}
-            style={{ width: 24, height: 24, objectFit: "contain", background: "#fff", borderRadius: 4, padding: 2 }} />
-          <div style={{ display:"none", width:24, height:24, background:"linear-gradient(135deg,#00d4a1,#0088ff)", borderRadius:4, alignItems:"center", justifyContent:"center", fontWeight:700, fontSize:10, color:"#060c18", flexShrink:0 }}>BW</div>
-            <div style={{ fontFamily: "var(--font-head)", fontWeight: 600, fontSize: 15, color: "var(--text)" }}>
-              {ALL_NAV.find(n => n.id === activeTab)?.label}
-            </div>
+            {(() => {
+              const currentItem = ALL_NAV.find(n => n.id === activeTab);
+              const CurrentIcon = currentItem?.Icon;
+              return (
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  {CurrentIcon && (
+                    <div style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: 7,
+                      background: "rgba(0, 212, 161, 0.12)",
+                      border: "1px solid rgba(0, 212, 161, 0.25)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "var(--accent)",
+                    }}>
+                      <CurrentIcon size={15} />
+                    </div>
+                  )}
+                  <div style={{ fontFamily: "var(--font-head)", fontWeight: 700, fontSize: 16, color: "var(--text)" }}>
+                    {currentItem?.label}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
           <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            <div style={{
-              background: "var(--bg-card)",
-              border: "1px solid var(--border)",
-              borderRadius: 7,
-              padding: "4px 14px",
-              fontSize: 12,
-              color: "var(--accent)",
-              fontWeight: 600,
-            }}>FY 2024–25</div>
             {user && (
               <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                 <span className="tag" style={{ background: ROLE_BADGE[user.role]?.bg, color: ROLE_BADGE[user.role]?.color, fontSize:11 }}>
                   {ROLE_BADGE[user.role]?.label}
                 </span>
-                <div style={{ background:"var(--bg-card)", border:"1px solid var(--border)", borderRadius:7, padding:"4px 14px", fontSize:12, color:"var(--text-muted)" }}>
+                <div style={{ background:"var(--bg-card)", border:"1px solid var(--border)", borderRadius:7, padding:"5px 14px", fontSize:12, color:"var(--text-muted)", fontWeight: 500 }}>
                   {user.name}
                 </div>
               </div>

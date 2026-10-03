@@ -1,6 +1,7 @@
 import { exportToExcel } from "../utils/exportUtils";
 import React, { useState } from "react";
 import { useApp } from "../context/AppContext";
+import { HardDrive, Download } from "lucide-react";
 
 // Helper: build and download Excel backup using SheetJS
 async function downloadBackup(cases, banks, projects) {
@@ -99,7 +100,20 @@ export default function BackupReminder({ alwaysShow = false }) {
       borderRadius: 12, padding: "14px 20px", marginBottom: 20,
       display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap",
     }}>
-      <span style={{ fontSize: 24 }}>💾</span>
+      <div style={{
+        width: 42,
+        height: 42,
+        borderRadius: 10,
+        background: alwaysShow ? "var(--bg-deep)" : "#f59e0b25",
+        border: `1px solid ${alwaysShow ? "var(--border)" : "#f59e0b40"}`,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: alwaysShow ? "var(--accent)" : "#fbbf24",
+        flexShrink: 0,
+      }}>
+        <HardDrive size={20} />
+      </div>
       <div style={{ flex: 1 }}>
         <div style={{ fontWeight: 600, fontSize: 13, color: alwaysShow ? "var(--text)" : "#fbbf24" }}>
           {alwaysShow ? "Data Backup" : "Backup Reminder"}
@@ -113,8 +127,8 @@ export default function BackupReminder({ alwaysShow = false }) {
       </div>
       <div style={{ display: "flex", gap: 10 }}>
         <button onClick={doBackup} disabled={exporting}
-          style={{ padding:"9px 20px", background: exporting ? "var(--border)" : "#f59e0b", border:"none", borderRadius:8, color: exporting ? "var(--text-muted)" : "#060c18", fontWeight:700, fontSize:13, cursor: exporting ? "not-allowed" : "pointer", fontFamily:"var(--font-body)" }}>
-          {exporting ? "Exporting…" : "📊 Export Backup"}
+          style={{ padding:"9px 20px", background: exporting ? "var(--border)" : "#f59e0b", border:"none", borderRadius:8, color: exporting ? "var(--text-muted)" : "#060c18", fontWeight:700, fontSize:13, cursor: exporting ? "not-allowed" : "pointer", fontFamily:"var(--font-body)", display:"inline-flex", alignItems:"center", gap:6 }}>
+          {exporting ? "Exporting…" : <><Download size={15} /> Export Backup</>}
         </button>
         {!alwaysShow && (
           <button onClick={() => setDismissed(true)}

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useApp } from "../../context/AppContext";
 import { useAuth } from "../../context/AuthContext";
 import { SectionHeader, Btn, FormField, FormPanel, TableCard } from "../../components/UI";
+import { UserPlus, Pencil, Trash2 } from "lucide-react";
 
 const BLANK = { name:"", username:"", password:"", email:"", phone:"", role:"executive", active:true };
 const ROLE_META = {
@@ -50,7 +51,7 @@ export default function UserManagement() {
       <SectionHeader
         title="User Management"
         sub="Manage admin, executive, and viewer accounts"
-        action={!isEditing && <Btn variant="primary" onClick={()=>{ setShowAdd(true); setEditId(null); setForm(BLANK); }}>+ Add User</Btn>}
+        action={!isEditing && <Btn variant="primary" onClick={()=>{ setShowAdd(true); setEditId(null); setForm(BLANK); }}><UserPlus size={14} style={{ marginRight:6 }} /> Add User</Btn>}
       />
 
       {/* Role legend */}
@@ -116,11 +117,11 @@ export default function UserManagement() {
                   <td><span className="tag" style={{ background:u.active!==false?"#00d4a120":"#ef444420", color:u.active!==false?"var(--accent)":"#f87171" }}>{u.active!==false?"Active":"Disabled"}</span></td>
                   <td>
                     <div style={{ display:"flex", gap:8 }}>
-                      <Btn size="sm" onClick={()=>startEdit(u)}>Edit</Btn>
+                      <Btn size="sm" onClick={()=>startEdit(u)} style={{ display:"inline-flex", alignItems:"center", gap:4 }}><Pencil size={12} /> Edit</Btn>
                       {!isMe && (
                         confirm===u.id
                           ? <><Btn size="sm" variant="danger" onClick={()=>handleDelete(u.id)}>Confirm</Btn><Btn size="sm" onClick={()=>setConfirm(null)}>Cancel</Btn></>
-                          : <Btn size="sm" variant="danger" onClick={()=>setConfirm(u.id)}>Delete</Btn>
+                          : <Btn size="sm" variant="danger" onClick={()=>setConfirm(u.id)} style={{ display:"inline-flex", alignItems:"center", gap:4 }}><Trash2 size={12} /> Delete</Btn>
                       )}
                     </div>
                   </td>

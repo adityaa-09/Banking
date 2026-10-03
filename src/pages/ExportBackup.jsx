@@ -3,6 +3,15 @@ import { useApp } from "../context/AppContext";
 import { SectionHeader, KpiCard } from "../components/UI";
 import { exportToExcel, exportToPDF } from "../utils/exportUtils";
 import { fmtShort, calcCaseRevenue } from "../utils/helpers";
+import {
+  FileText,
+  Coins,
+  Building2,
+  TrendingUp,
+  HardDrive,
+  Download,
+  FileSpreadsheet,
+} from "lucide-react";
 
 export default function ExportBackup() {
   const { cases, banks, projects } = useApp();
@@ -70,27 +79,35 @@ export default function ExportBackup() {
         borderRadius: 12, padding: "16px 22px", marginBottom: 28,
         display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap",
       }}>
-        <span style={{ fontSize: 28 }}>💾</span>
+        <div style={{
+          width: 46, height: 46, borderRadius: 12,
+          background: daysSince === null || daysSince > 7 ? "#f59e0b25" : "#00d4a125",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          color: daysSince === null || daysSince > 7 ? "#fbbf24" : "var(--accent)",
+          flexShrink: 0,
+        }}>
+          <HardDrive size={24} />
+        </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 700, fontSize: 14, color: daysSince === null || daysSince > 7 ? "#fbbf24" : "var(--accent)", marginBottom: 4 }}>
-            {daysSince === null ? "No backup taken yet" : daysSince > 7 ? `Last backup ${daysSince} days ago — due for a new one!` : `Last backup ${daysSince === 0 ? "today" : `${daysSince} day${daysSince !== 1?"s":""} ago`} — you're up to date ✓`}
+            {daysSince === null ? "No backup taken yet" : daysSince > 7 ? `Last backup ${daysSince} days ago — due for a new one!` : `Last backup ${daysSince === 0 ? "today" : `${daysSince} day${daysSince !== 1?"s":""} ago`} — you're up to date`}
           </div>
           <div style={{ fontSize: 12, color: "var(--text-faint)" }}>
             {cases.length} cases · {banks.length} banks · {projects.length} projects in database
           </div>
         </div>
         <button onClick={() => doExport("backup")} disabled={!!exporting}
-          style={{ padding:"11px 24px", background:"#f59e0b", border:"none", borderRadius:10, color:"#060c18", fontWeight:700, fontSize:14, cursor: exporting ? "not-allowed" : "pointer", fontFamily:"var(--font-body)" }}>
-          {exporting === "backup" ? "⏳ Exporting…" : "📥 Download Full Backup"}
+          style={{ padding:"11px 24px", background:"#f59e0b", border:"none", borderRadius:10, color:"#060c18", fontWeight:700, fontSize:14, cursor: exporting ? "not-allowed" : "pointer", fontFamily:"var(--font-body)", display:"inline-flex", alignItems:"center", gap:8 }}>
+          {exporting === "backup" ? "Exporting…" : <><Download size={16} /> Download Full Backup</>}
         </button>
       </div>
 
       {/* Summary KPIs */}
       <div className="grid-4" style={{ marginBottom: 28 }}>
-        <KpiCard label="Total Cases"    value={filtered.length}          icon="📋" color="var(--accent2)" />
-        <KpiCard label="Bank Income"    value={fmtShort(totals.income)}  icon="💰" color="var(--accent)"  />
-        <KpiCard label="Dev Payout"     value={fmtShort(totals.payout)}  icon="🏗️" color="#f87171"        />
-        <KpiCard label="Net Profit"     value={fmtShort(totals.profit)}  icon="📈" color="var(--green)"   />
+        <KpiCard label="Total Cases"    value={filtered.length}          icon={<FileText size={18} />}    color="var(--accent2)" />
+        <KpiCard label="Bank Income"    value={fmtShort(totals.income)}  icon={<Coins size={18} />}       color="var(--accent)"  />
+        <KpiCard label="Dev Payout"     value={fmtShort(totals.payout)}  icon={<Building2 size={18} />}   color="#f87171"        />
+        <KpiCard label="Net Profit"     value={fmtShort(totals.profit)}  icon={<TrendingUp size={18} />}  color="var(--green)"   />
       </div>
 
       {/* Filter panel */}
@@ -140,7 +157,9 @@ export default function ExportBackup() {
         {/* Excel */}
         <div className="card" style={{ padding: 28, display:"flex", flexDirection:"column", gap: 16 }}>
           <div style={{ display:"flex", alignItems:"center", gap: 14 }}>
-            <div style={{ width:52, height:52, background:"#10b98120", border:"1px solid #10b98140", borderRadius:12, display:"flex", alignItems:"center", justifyContent:"center", fontSize:26 }}>📊</div>
+            <div style={{ width:52, height:52, background:"#10b98120", border:"1px solid #10b98140", borderRadius:12, display:"flex", alignItems:"center", justifyContent:"center", color:"#10b981" }}>
+              <FileSpreadsheet size={26} />
+            </div>
             <div>
               <div style={{ fontWeight:700, fontSize:16, marginBottom:2 }}>Export to Excel</div>
               <div style={{ fontSize:12, color:"var(--text-faint)" }}>5 sheets: Summary, Cases, Monthly P&L, Project P&L, Bank Summary</div>
@@ -151,15 +170,17 @@ export default function ExportBackup() {
             All case details, revenue calculations, and breakdowns included.
           </div>
           <button onClick={() => doExport("excel")} disabled={!!exporting || filtered.length === 0}
-            style={{ padding:"13px 0", background: exporting==="excel" ? "var(--border)" : "linear-gradient(135deg,#10b981,#059669)", border:"none", borderRadius:10, color: exporting==="excel" ? "var(--text-muted)" : "#fff", fontWeight:700, fontSize:15, cursor: exporting || filtered.length===0 ? "not-allowed" : "pointer", fontFamily:"var(--font-body)", transition:"all 0.2s" }}>
-            {exporting === "excel" ? "⏳ Generating Excel…" : "📊 Download Excel Report"}
+            style={{ padding:"13px 0", background: exporting==="excel" ? "var(--border)" : "linear-gradient(135deg,#10b981,#059669)", border:"none", borderRadius:10, color: exporting==="excel" ? "var(--text-muted)" : "#fff", fontWeight:700, fontSize:15, cursor: exporting || filtered.length===0 ? "not-allowed" : "pointer", fontFamily:"var(--font-body)", transition:"all 0.2s", display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
+            {exporting === "excel" ? "Generating Excel…" : <><Download size={16} /> Download Excel Report</>}
           </button>
         </div>
 
         {/* PDF */}
         <div className="card" style={{ padding: 28, display:"flex", flexDirection:"column", gap: 16 }}>
           <div style={{ display:"flex", alignItems:"center", gap: 14 }}>
-            <div style={{ width:52, height:52, background:"#ef444420", border:"1px solid #ef444440", borderRadius:12, display:"flex", alignItems:"center", justifyContent:"center", fontSize:26 }}>📄</div>
+            <div style={{ width:52, height:52, background:"#ef444420", border:"1px solid #ef444440", borderRadius:12, display:"flex", alignItems:"center", justifyContent:"center", color:"#ef4444" }}>
+              <FileText size={26} />
+            </div>
             <div>
               <div style={{ fontWeight:700, fontSize:16, marginBottom:2 }}>Export to PDF</div>
               <div style={{ fontSize:12, color:"var(--text-faint)" }}>3 pages: Summary + KPIs, Project & Bank tables, Full case list</div>
@@ -170,8 +191,8 @@ export default function ExportBackup() {
             Dark-themed, landscape A4, with revenue highlighted.
           </div>
           <button onClick={() => doExport("pdf")} disabled={!!exporting || filtered.length === 0}
-            style={{ padding:"13px 0", background: exporting==="pdf" ? "var(--border)" : "linear-gradient(135deg,#ef4444,#dc2626)", border:"none", borderRadius:10, color: exporting==="pdf" ? "var(--text-muted)" : "#fff", fontWeight:700, fontSize:15, cursor: exporting || filtered.length===0 ? "not-allowed" : "pointer", fontFamily:"var(--font-body)", transition:"all 0.2s" }}>
-            {exporting === "pdf" ? "⏳ Generating PDF…" : "📄 Download PDF Report"}
+            style={{ padding:"13px 0", background: exporting==="pdf" ? "var(--border)" : "linear-gradient(135deg,#ef4444,#dc2626)", border:"none", borderRadius:10, color: exporting==="pdf" ? "var(--text-muted)" : "#fff", fontWeight:700, fontSize:15, cursor: exporting || filtered.length===0 ? "not-allowed" : "pointer", fontFamily:"var(--font-body)", transition:"all 0.2s", display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
+            {exporting === "pdf" ? "Generating PDF…" : <><Download size={16} /> Download PDF Report</>}
           </button>
         </div>
       </div>
@@ -181,7 +202,9 @@ export default function ExportBackup() {
         <div style={{ fontWeight:700, fontSize:13, marginBottom:14 }}>What's included in each export</div>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:16, fontSize:12, color:"var(--text-muted)", lineHeight:1.7 }}>
           <div>
-            <div style={{ fontWeight:600, color:"var(--text)", marginBottom:6 }}>📊 Excel — 5 Sheets</div>
+            <div style={{ fontWeight:600, color:"var(--text)", marginBottom:6, display:"flex", alignItems:"center", gap:6 }}>
+              <FileSpreadsheet size={15} color="#10b981" /> Excel — 5 Sheets
+            </div>
             <div>• Summary KPIs</div>
             <div>• All Cases (with all fields)</div>
             <div>• Monthly P&L breakdown</div>
@@ -189,7 +212,9 @@ export default function ExportBackup() {
             <div>• Bank-wise income</div>
           </div>
           <div>
-            <div style={{ fontWeight:600, color:"var(--text)", marginBottom:6 }}>📄 PDF — 3 Pages</div>
+            <div style={{ fontWeight:600, color:"var(--text)", marginBottom:6, display:"flex", alignItems:"center", gap:6 }}>
+              <FileText size={15} color="#ef4444" /> PDF — 3 Pages
+            </div>
             <div>• Page 1: Summary + Monthly table</div>
             <div>• Page 2: Project P&L + Bank income</div>
             <div>• Page 3: All cases detail</div>
@@ -197,12 +222,14 @@ export default function ExportBackup() {
             <div>• Revenue highlighted in color</div>
           </div>
           <div>
-            <div style={{ fontWeight:600, color:"var(--text)", marginBottom:6 }}>💾 Backup</div>
-            <div>• Full data export (Excel)</div>
+            <div style={{ fontWeight:600, color:"var(--text)", marginBottom:6, display:"flex", alignItems:"center", gap:6 }}>
+              <HardDrive size={15} color="#fbbf24" /> Full Backup
+            </div>
+            <div>• Complete raw database snapshot</div>
             <div>• All cases with every field</div>
             <div>• Banks + Projects included</div>
-            <div>• Backup date recorded</div>
-            <div>• Reminder every 7 days</div>
+            <div>• Timestamped .xlsx archive</div>
+            <div>• Auto-updates backup indicator</div>
           </div>
         </div>
       </div>

@@ -56,13 +56,14 @@ export const genId = (prefix, list) =>
   GROSS = one lump sum payout when disbursed
   NET   = per disbursement slot (each slot has its own amount + date)
 
-  IMPORTANT — Fix #3:
-  Profit is ONLY counted on disbursed slots/amounts, never on sanctioned-but-not-disbursed.
+  Bank Income  = disbursed loan amount * bank commission %
+  Dev Payout   = bank income * developer payout % (percentage paid to developer from bank income)
+  Net Profit   = bank income - dev payout (remaining profit kept by us)
 */
 
 export const calcSlotAmount  = (totalAmt, totalSlots) => totalSlots > 0 ? totalAmt / totalSlots : totalAmt;
 export const calcBankIncome  = (disbursedAmt, bankPct) => (disbursedAmt * (bankPct || 0)) / 100;
-export const calcDevPayout   = (amt, devPct)           => (amt * (devPct || 0)) / 100;
+export const calcDevPayout   = (bankIncome, devPct)    => (bankIncome * (devPct || 0)) / 100;
 
 // Returns { bankIncome, devPayout, profit } — ONLY from actually disbursed amounts
 export const calcCaseRevenue = (c, bank, project) => {
@@ -75,9 +76,10 @@ export const calcCaseRevenue = (c, bank, project) => {
     // Gross: lump sum — only count if actually disbursed
     if (c.disbursed && c.disbursedAmt > 0) {
       bankIncome = calcBankIncome(c.disbursedAmt, bank.agreementPct);
-      devPayout  = calcDevPayout(c.disbursedAmt, project.developerPayoutPct || 0);
+      // Developer payout is a percentage from the bank income received
+      devPayout  = calcDevPayout(bankIncome, project.developerPayoutPct || 0);
     }
-    // If not disbursed yet → no income, no profit (Fix #3)
+    // If not disbursed yet → no income, no profit
   } else {
     // Net: per slot — only count slots that are actually disbursed
     const slots = c.slots || [];
@@ -86,17 +88,18 @@ export const calcCaseRevenue = (c, bank, project) => {
     disbursedSlots.forEach(s => {
       // Use slot's custom amount if set, else fallback to equal split
       const slotAmt = s.customAmt > 0 ? s.customAmt : calcSlotAmount(c.loanAmt || 0, c.totalSlots || 1);
-      bankIncome += calcBankIncome(slotAmt, bank.agreementPct);
+      const slotIncome = calcBankIncome(slotAmt, bank.agreementPct);
+      bankIncome += slotIncome;
 
       if (c.devPayoutMode === "per_slot") {
-        devPayout += calcDevPayout(slotAmt, project.developerPayoutPct || 0);
+        devPayout += calcDevPayout(slotIncome, project.developerPayoutPct || 0);
       }
     });
 
     if (c.devPayoutMode === "lump_sum") {
       const allDone = disbursedSlots.length === (c.totalSlots || 1);
       if (allDone) {
-        devPayout = calcDevPayout(c.loanAmt || 0, project.developerPayoutPct || 0);
+        devPayout = calcDevPayout(bankIncome, project.developerPayoutPct || 0);
       }
     }
   }

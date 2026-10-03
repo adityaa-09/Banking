@@ -1,4 +1,5 @@
 import React from "react";
+import { Inbox, Calendar, X, AlertTriangle, Check } from "lucide-react";
 import { statusTag } from "../utils/helpers";
 
 // ─── SECTION HEADER ───────────────────────────────────────────────────────────
@@ -74,32 +75,58 @@ export function StatusTag({ status }) {
 }
 
 // ─── KPI CARD ────────────────────────────────────────────────────────────────
-export function KpiCard({ label, value, icon, color, sub }) {
+export function KpiCard({ label, value, icon, color = "var(--accent)", sub }) {
   return (
     <div className="card" style={{ padding: "18px 20px", cursor: "default" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-        <span style={{ fontSize: 20 }}>{icon}</span>
-        <div style={{ width: 8, height: 8, borderRadius: "50%", background: color }} />
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+        <div style={{
+          width: 38,
+          height: 38,
+          borderRadius: 10,
+          background: color ? `${color}18` : "rgba(255,255,255,0.05)",
+          border: `1px solid ${color ? `${color}30` : "var(--border)"}`,
+          color: color || "var(--accent)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+        }}>
+          {React.isValidElement(icon) ? icon : <span style={{ fontSize: 18 }}>{icon}</span>}
+        </div>
+        <div style={{ width: 7, height: 7, borderRadius: "50%", background: color, boxShadow: `0 0 8px ${color}60` }} />
       </div>
       <div style={{
-        fontFamily: "var(--font-head)", fontSize: 28, fontWeight: 700,
-        color, lineHeight: 1, marginBottom: 4,
+        fontFamily: "var(--font-head)", fontSize: 26, fontWeight: 700,
+        color, lineHeight: 1.1, marginBottom: 4, letterSpacing: "-0.01em",
       }}>{value}</div>
       <div style={{ fontSize: 12, color: "var(--text-faint)", fontWeight: 500 }}>{label}</div>
-      {sub && <div style={{ fontSize: 11, color: "var(--text-dim)", marginTop: 2 }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 11, color: "var(--text-dim)", marginTop: 4 }}>{sub}</div>}
     </div>
   );
 }
 
 // ─── EMPTY STATE ─────────────────────────────────────────────────────────────
-export function EmptyState({ icon = "📭", message = "No records found" }) {
+export function EmptyState({ icon, message = "No records found" }) {
   return (
     <div style={{
       textAlign: "center", padding: "60px 20px",
       color: "var(--text-faint)", fontSize: 14,
     }}>
-      <div style={{ fontSize: 40, marginBottom: 12 }}>{icon}</div>
-      {message}
+      <div style={{
+        width: 48,
+        height: 48,
+        borderRadius: 12,
+        background: "rgba(255,255,255,0.03)",
+        border: "1px solid var(--border)",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        marginBottom: 12,
+        color: "var(--text-muted)",
+      }}>
+        {React.isValidElement(icon) ? icon : <Inbox size={22} />}
+      </div>
+      <div>{message}</div>
     </div>
   );
 }
@@ -309,7 +336,7 @@ export function DatePicker({
     }
 
     // Invalid format
-    setErrorHint("Invalid date. Use DD/MM/YYYY or click 📅");
+    setErrorHint("Invalid date. Use DD/MM/YYYY or calendar picker");
   };
 
   const handleOpenCalendar = () => {
@@ -404,9 +431,12 @@ export function DatePicker({
                   cursor: "pointer",
                   padding: "2px 5px",
                   borderRadius: 4,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
               >
-                ✕
+                <X size={12} />
               </button>
             )}
 
@@ -442,16 +472,15 @@ export function DatePicker({
                 background: "var(--border)",
                 border: "1px solid var(--border-lt)",
                 borderRadius: 5,
-                padding: "3px 6px",
+                padding: "4px 6px",
                 cursor: "pointer",
-                fontSize: 13,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                color: "var(--text)",
+                color: "var(--accent)",
               }}
             >
-              📅
+              <Calendar size={13} />
             </button>
           </div>
         )}
@@ -482,12 +511,12 @@ export function DatePicker({
 
       {/* Confirmation or Error message */}
       {errorHint ? (
-        <div style={{ fontSize: 10, color: "var(--amber)", marginTop: 3, paddingLeft: 2 }}>
-          ⚠️ {errorHint}
+        <div style={{ fontSize: 10, color: "var(--amber)", marginTop: 3, paddingLeft: 2, display: "flex", alignItems: "center", gap: 3 }}>
+          <AlertTriangle size={10} /> {errorHint}
         </div>
       ) : friendlyDisplay ? (
-        <div style={{ fontSize: 10, color: "var(--accent)", marginTop: 3, paddingLeft: 2, fontWeight: 500 }}>
-          ✓ {friendlyDisplay}
+        <div style={{ fontSize: 10, color: "var(--accent)", marginTop: 3, paddingLeft: 2, fontWeight: 500, display: "flex", alignItems: "center", gap: 3 }}>
+          <Check size={10} /> {friendlyDisplay}
         </div>
       ) : null}
     </div>
@@ -647,9 +676,12 @@ export function MonthPicker({
                   fontSize: 12,
                   cursor: "pointer",
                   padding: "2px 4px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
               >
-                ✕
+                <X size={12} />
               </button>
             )}
             {showCurrent && (
@@ -682,16 +714,15 @@ export function MonthPicker({
                 background: "var(--border)",
                 border: "1px solid var(--border-lt)",
                 borderRadius: 5,
-                padding: "3px 6px",
+                padding: "4px 6px",
                 cursor: "pointer",
-                fontSize: 13,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                color: "var(--text)",
+                color: "var(--accent)",
               }}
             >
-              🗓️
+              <Calendar size={13} />
             </button>
           </div>
         )}
@@ -709,8 +740,8 @@ export function MonthPicker({
         />
       </div>
       {friendlyDisplay && (
-        <div style={{ fontSize: 10, color: "var(--accent)", marginTop: 3, paddingLeft: 2, fontWeight: 500 }}>
-          ✓ {friendlyDisplay}
+        <div style={{ fontSize: 10, color: "var(--accent)", marginTop: 3, paddingLeft: 2, fontWeight: 500, display: "flex", alignItems: "center", gap: 3 }}>
+          <Check size={10} /> {friendlyDisplay}
         </div>
       )}
     </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useApp } from "../context/AppContext";
 import { SectionHeader, FilterSelect, TableCard, EmptyState } from "../components/UI";
+import { RotateCcw, Clock, History } from "lucide-react";
 
 export default function ActivityLog() {
   const { cases, users, fetchRecentLogs } = useApp();
@@ -46,8 +47,8 @@ export default function ActivityLog() {
         action={
           <div style={{ display:"flex", gap:10 }}>
             <button onClick={() => loadLogs(limit)}
-              style={{ padding:"8px 16px", background:"var(--bg-card)", border:"1px solid var(--border)", borderRadius:8, color:"var(--text-muted)", fontSize:13, cursor:"pointer", fontFamily:"var(--font-body)" }}>
-              🔄 Refresh
+              style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"8px 16px", background:"var(--bg-card)", border:"1px solid var(--border)", borderRadius:8, color:"var(--text-muted)", fontSize:13, cursor:"pointer", fontFamily:"var(--font-body)" }}>
+              <RotateCcw size={13} /> Refresh
             </button>
             <select value={limit} onChange={e => setLimit(Number(e.target.value))}
               style={{ padding:"8px 12px", background:"var(--bg-card)", border:"1px solid var(--border)", borderRadius:8, color:"var(--text)", fontSize:13 }}>
@@ -72,7 +73,7 @@ export default function ActivityLog() {
       {loading ? (
         <div style={{ textAlign:"center", padding:60, color:"var(--text-faint)" }}>Loading activity logs…</div>
       ) : filtered.length === 0 ? (
-        <EmptyState message="No activity logged yet. Activity is tracked when cases are created, edited, or disbursed." />
+        <EmptyState icon={<History size={32} />} message="No activity logged yet. Activity is tracked when cases are created, edited, or disbursed." />
       ) : (
         <div style={{ display:"flex", flexDirection:"column", gap:0 }}>
           {/* Timeline */}
@@ -114,11 +115,13 @@ export default function ActivityLog() {
                       {log.newVal && <span style={{ color:"var(--accent)", marginLeft: log.oldVal ? 0 : 4 }}>{log.newVal}</span>}
                     </div>
                   )}
-                  <div style={{ fontSize:11, color:"var(--text-dim)", marginTop:4 }}>
-                    🕐 {fmtDateTime(log.timestamp)}
+                  <div style={{ fontSize:11, color:"var(--text-dim)", marginTop:4, display:"flex", alignItems:"center", gap:6 }}>
+                    <span style={{ display:"inline-flex", alignItems:"center", gap:4 }}>
+                      <Clock size={11} /> {fmtDateTime(log.timestamp)}
+                    </span>
                     {log.caseId && (
-                      <span style={{ marginLeft:12, color:"var(--text-dim)" }}>
-                        Case: {caseObj?.clientName || log.caseId.slice(0,8) + "…"}
+                      <span style={{ marginLeft:8, color:"var(--text-dim)" }}>
+                        · Case: {caseObj?.clientName || log.caseId.slice(0,8) + "…"}
                       </span>
                     )}
                   </div>

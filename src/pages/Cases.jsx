@@ -9,6 +9,10 @@ import {
   fmtShort, fmtDate, calcCaseRevenue, calcSlotAmount, calcBankIncome, calcDevPayout,
 } from "../utils/helpers";
 import { addLog, getLogsForCase } from "../config/firebaseService";
+import {
+  CreditCard, AlertTriangle, Trash2, Phone, Mail, User,
+  Pencil, ExternalLink, FileText, Check, X, Clock, Landmark,
+} from "lucide-react";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 function buildSlots(n, loanAmt) {
@@ -309,7 +313,7 @@ export default function Cases() {
             <FormField label="Project" span={2}>
               <select value={form.projectId} onChange={f("projectId")}>
                 <option value="">Select Project</option>
-                {projects.map(p => <option key={p.id} value={p.id}>{p.name} (Dev: {p.developerPayoutPct||0}%)</option>)}
+                {projects.map(p => <option key={p.id} value={p.id}>{p.name} (Dev: {p.developerPayoutPct||0}% of bank income)</option>)}
               </select>
             </FormField>
             <FormField label="Bank">
@@ -436,8 +440,8 @@ export default function Cases() {
               <PLItem label="Dev Payout"   value={previewPL.devPayout}  color="#f87171" neg />
               <PLItem label="Net Profit"   value={previewPL.profit}     color={previewPL.profit>=0?"var(--green)":"#f87171"} bold />
               {!isNet && form.disbursed !== "yes" && (
-                <div style={{ fontSize:11, color:"var(--amber)", alignSelf:"center" }}>
-                  ⚠ Profit shows ₹0 until disbursed
+                <div style={{ fontSize:11, color:"var(--amber)", alignSelf:"center", display:"flex", alignItems:"center", gap:4 }}>
+                  <AlertTriangle size={12} /> Profit shows ₹0 until disbursed
                 </div>
               )}
             </div>
@@ -461,7 +465,7 @@ export default function Cases() {
           }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: 16 }}>💳</span>
+                <CreditCard size={16} style={{ color: "var(--accent)" }} />
                 <span style={{ fontSize: 12, fontWeight: 700, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
                   Accounts Team — Amount Received in Bank
                 </span>
@@ -612,7 +616,12 @@ export default function Cases() {
                     </td>
                     <td style={{ fontSize:12, color:"var(--accent2)" }}>{c.salesPoc||"—"}</td>
                     <td style={{ fontSize:12, maxWidth:120 }}><div>{project?.name}</div></td>
-                    <td>{bank?.logo} {bank?.name}</td>
+                    <td>
+                      <span style={{ display:"inline-flex", alignItems:"center", gap:6 }}>
+                        <Landmark size={14} style={{ color:"var(--accent)", flexShrink:0 }} />
+                        <span>{bank?.name}</span>
+                      </span>
+                    </td>
                     <td>
                       <span className="tag" style={{ background:isNetCase?"#6366f120":"#00d4a120", color:isNetCase?"#818cf8":"var(--accent)" }}>
                         {c.loanPayoutType||bank?.agreementType||"—"}
@@ -623,7 +632,7 @@ export default function Cases() {
                       {isNetCase
                         ? <span style={{ color:"var(--accent2)" }}>{disbSlots}/{c.totalSlots||"?"} slots</span>
                         : c.disbursed
-                          ? <span style={{ color:"var(--accent)" }}>✓ {fmtShort(c.disbursedAmt)}</span>
+                          ? <span style={{ color:"var(--accent)", display:"inline-flex", alignItems:"center", gap:3 }}><Check size={12} /> {fmtShort(c.disbursedAmt)}</span>
                           : <span style={{ color:"var(--text-faint)" }}>Pending</span>
                       }
                     </td>
@@ -633,8 +642,8 @@ export default function Cases() {
                     <td style={{ fontSize:12 }}>
                       {c.amountReceivedStatus === "Received" || Number(c.amountReceived) > 0 ? (
                         <div>
-                          <span style={{ color:"var(--green)", fontWeight:600 }}>
-                            ✓ {fmtShort(c.amountReceived)}
+                          <span style={{ color:"var(--green)", fontWeight:600, display:"inline-flex", alignItems:"center", gap:3 }}>
+                            <Check size={12} /> {fmtShort(c.amountReceived)}
                           </span>
                           {c.amountReceivedDate && (
                             <div style={{ fontSize:10, color:"var(--text-faint)" }}>
@@ -648,8 +657,8 @@ export default function Cases() {
                           )}
                         </div>
                       ) : (
-                        <span style={{ color:"var(--amber)", fontSize:11, background:"#f59e0b15", padding:"2px 6px", borderRadius:4 }}>
-                          ⏳ Pending
+                        <span style={{ color:"var(--amber)", fontSize:11, background:"#f59e0b15", padding:"2px 6px", borderRadius:4, display:"inline-flex", alignItems:"center", gap:3 }}>
+                          <Clock size={10} /> Pending
                         </span>
                       )}
                     </td>
@@ -657,8 +666,9 @@ export default function Cases() {
                     <td onClick={e=>e.stopPropagation()}>
                       {canEdit && (
                         <button onClick={()=>setDeleteTarget(c)}
-                          style={{ background:"#ef444420", border:"1px solid #ef444440", borderRadius:6, color:"#f87171", fontSize:11, padding:"4px 10px", cursor:"pointer" }}>
-                          🗑️
+                          title="Delete case"
+                          style={{ background:"#ef444415", border:"1px solid #ef444435", borderRadius:6, color:"#f87171", padding:"5px 8px", cursor:"pointer", display:"inline-flex", alignItems:"center", justifyContent:"center" }}>
+                          <Trash2 size={13} />
                         </button>
                       )}
                     </td>
@@ -690,7 +700,9 @@ export default function Cases() {
       {deleteTarget && (
         <div className="overlay" onClick={()=>setDeleteTarget(null)}>
           <div style={{ background:"var(--bg-card)", border:"1px solid #ef444450", borderRadius:16, padding:28, maxWidth:400, width:"90%" }} onClick={e=>e.stopPropagation()}>
-            <div style={{ fontSize:32, marginBottom:12 }}>🗑️</div>
+            <div style={{ width:48, height:48, borderRadius:12, background:"#ef444420", border:"1px solid #ef444440", display:"flex", alignItems:"center", justifyContent:"center", color:"#ef4444", marginBottom:16 }}>
+              <Trash2 size={24} />
+            </div>
             <div style={{ fontFamily:"var(--font-head)", fontSize:18, fontWeight:700, marginBottom:8 }}>Delete case: {deleteTarget.clientName}?</div>
             <div style={{ fontSize:13, color:"var(--text-faint)", marginBottom:24 }}>This cannot be undone. All logs for this case will also be deleted.</div>
             <div style={{ display:"flex", gap:10 }}>
@@ -768,11 +780,11 @@ function CaseModal({ c, bank, project, logs, logsLoading, onClose, onEdit, onUpd
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:12 }}>
           <div>
             <div style={{ fontFamily:"var(--font-head)", fontSize:20, fontWeight:700 }}>{c.clientName}</div>
-            <div style={{ fontSize:12, color:"var(--text-faint)", marginTop:2 }}>
-              {c.clientPhone && <span>📞 {c.clientPhone} &nbsp;</span>}
-              {c.clientEmail && <span>✉️ {c.clientEmail}</span>}
+            <div style={{ fontSize:12, color:"var(--text-faint)", marginTop:2, display:"flex", gap:12 }}>
+              {c.clientPhone && <span style={{ display:"inline-flex", alignItems:"center", gap:4 }}><Phone size={12} /> {c.clientPhone}</span>}
+              {c.clientEmail && <span style={{ display:"inline-flex", alignItems:"center", gap:4 }}><Mail size={12} /> {c.clientEmail}</span>}
             </div>
-            {c.salesPoc && <div style={{ fontSize:12, color:"var(--accent2)", marginTop:2 }}>👤 Sales: {c.salesPoc}</div>}
+            {c.salesPoc && <div style={{ fontSize:12, color:"var(--accent2)", marginTop:4, display:"inline-flex", alignItems:"center", gap:4 }}><User size={12} /> Sales: {c.salesPoc}</div>}
           </div>
           <div style={{ display:"flex", gap:8 }}>
             <span className="tag" style={{ background:isNet?"#6366f120":"#00d4a120", color:isNet?"#818cf8":"var(--accent)" }}>
@@ -805,7 +817,7 @@ function CaseModal({ c, bank, project, logs, logsLoading, onClose, onEdit, onUpd
               ["Sanctioned Amt", fmtShort(c.sanctionedAmt)],
               ["Sanction Date",  fmtDate(c.sanctionDate)],
               ["Bank %",         `${bank?.agreementPct||0}% (${bank?.agreementType})`],
-              ["Dev Payout %",   `${project?.developerPayoutPct||0}%`],
+              ["Dev Payout %",   `${project?.developerPayoutPct||0}% of bank income`],
               ["Sanction Doc",   c.sanctionDoc||"—"],
               ["Dev Payout",     c.devPayoutStatus||"—"],
             ]} />
@@ -816,14 +828,14 @@ function CaseModal({ c, bank, project, logs, logsLoading, onClose, onEdit, onUpd
                 Revenue (disbursed only)
               </div>
               <RevRow label={`Bank Income (${bank?.agreementPct}%)`} value={rev.bankIncome} color="var(--accent)" />
-              <RevRow label={`Dev Payout (${project?.developerPayoutPct||0}%)`} value={rev.devPayout} color="#f87171" neg />
+              <RevRow label={`Dev Payout (${project?.developerPayoutPct||0}% of bank income)`} value={rev.devPayout} color="#f87171" neg />
               <div style={{ borderTop:"1px solid var(--border)", paddingTop:8, display:"flex", justifyContent:"space-between", fontWeight:700, fontSize:15 }}>
                 <span>Net Profit</span>
                 <span style={{ color:rev.profit>=0?"var(--green)":"#f87171" }}>{fmtShort(rev.profit)}</span>
               </div>
               {!isNet && !c.disbursed && (
-                <div style={{ marginTop:8, fontSize:11, color:"var(--amber)" }}>
-                  ⚠ Profit is ₹0 — case not disbursed yet
+                <div style={{ marginTop:8, fontSize:11, color:"var(--amber)", display:"flex", alignItems:"center", gap:4 }}>
+                  <AlertTriangle size={12} /> Profit is ₹0 — case not disbursed yet
                 </div>
               )}
             </div>
@@ -838,7 +850,7 @@ function CaseModal({ c, bank, project, logs, logsLoading, onClose, onEdit, onUpd
             }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 16 }}>💳</span>
+                  <CreditCard size={16} style={{ color: "var(--accent)" }} />
                   <span style={{ fontWeight: 600, fontSize: 12, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
                     Accounts Team — Amount Received in Bank
                   </span>
@@ -854,9 +866,9 @@ function CaseModal({ c, bank, project, logs, logsLoading, onClose, onEdit, onUpd
                       setAccNotes(c.accountsRemarks || "");
                       setEditingAccounts(true);
                     }}
-                    style={{ background: "var(--border)", border: "none", borderRadius: 6, color: "var(--text)", fontSize: 12, padding: "4px 10px", cursor: "pointer" }}
+                    style={{ background: "var(--border)", border: "none", borderRadius: 6, color: "var(--text)", fontSize: 12, padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5 }}
                   >
-                    ✏️ Update Receipt
+                    <Pencil size={12} /> Update Receipt
                   </button>
                 )}
               </div>
@@ -962,8 +974,8 @@ function CaseModal({ c, bank, project, logs, logsLoading, onClose, onEdit, onUpd
                   <div style={{ fontWeight:600, fontSize:13 }}>Disbursement (Gross)</div>
                   {onUpdateGross && !editingDisb && (
                     <button onClick={()=>{ setDisbAmt(c.disbursedAmt||""); setDisbDate(c.disbursedDate||""); setEditingDisb(true); }}
-                      style={{ background:"var(--border)", border:"none", borderRadius:6, color:"var(--text)", fontSize:12, padding:"4px 10px", cursor:"pointer" }}>
-                      ✏️ Edit
+                      style={{ background:"var(--border)", border:"none", borderRadius:6, color:"var(--text)", fontSize:12, padding:"4px 10px", cursor:"pointer", display:"inline-flex", alignItems:"center", gap:4 }}>
+                      <Pencil size={12} /> Edit
                     </button>
                   )}
                 </div>
@@ -997,17 +1009,18 @@ function CaseModal({ c, bank, project, logs, logsLoading, onClose, onEdit, onUpd
             {c.driveLink && (
               <a href={c.driveLink} target="_blank" rel="noreferrer"
                 style={{ display:"inline-flex", alignItems:"center", gap:8, background:"var(--bg-deep)", border:"1px solid var(--border)", borderRadius:10, padding:"10px 16px", color:"var(--accent2)", fontSize:13, textDecoration:"none", marginBottom:14 }}>
-                📎 View Docs on Google Drive →
+                <ExternalLink size={14} /> View Docs on Google Drive →
               </a>
             )}
 
             {c.remarks && (
-              <div style={{ background:"var(--bg-deep)", borderRadius:8, padding:"10px 14px", fontSize:13, color:"var(--text-muted)", marginBottom:14 }}>
-                📝 {c.remarks}
+              <div style={{ background:"var(--bg-deep)", borderRadius:8, padding:"10px 14px", fontSize:13, color:"var(--text-muted)", marginBottom:14, display:"flex", alignItems:"flex-start", gap:8 }}>
+                <FileText size={14} style={{ color:"var(--accent)", marginTop:2, flexShrink:0 }} />
+                <span>{c.remarks}</span>
               </div>
             )}
 
-            {onEdit && <Btn variant="primary" onClick={onEdit}>✏️ Edit Case</Btn>}
+            {onEdit && <Btn variant="primary" onClick={onEdit}><Pencil size={13} style={{ marginRight:6 }} /> Edit Case</Btn>}
           </>
         )}
 
@@ -1032,14 +1045,17 @@ function CaseModal({ c, bank, project, logs, logsLoading, onClose, onEdit, onUpd
                         <input type="number" value={editSlotAmt} onChange={e=>setEditSlotAmt(e.target.value)}
                           style={{ width:140, padding:"5px 8px", fontSize:13 }} placeholder="Slot amount ₹" />
                         <button onClick={()=>saveSlotAmt(i)} style={{ padding:"5px 12px", background:"var(--accent)", border:"none", borderRadius:6, color:"#060c18", fontWeight:700, fontSize:12, cursor:"pointer" }}>Save</button>
-                        <button onClick={()=>setEditSlotIdx(null)} style={{ padding:"5px 10px", background:"var(--border)", border:"none", borderRadius:6, color:"var(--text)", fontSize:12, cursor:"pointer" }}>✕</button>
+                        <button onClick={()=>setEditSlotIdx(null)} style={{ padding:"5px 10px", background:"var(--border)", border:"none", borderRadius:6, color:"var(--text)", fontSize:12, cursor:"pointer", display:"inline-flex", alignItems:"center" }}><X size={12} /></button>
                       </div>
                     ) : (
                       <div>
                         <span style={{ fontWeight:600, fontSize:13 }}>Slot {i+1} — {fmtShort(s.customAmt||0)}</span>
                         {onUpdateSlot && (
                           <button onClick={()=>{ setEditSlotIdx(i); setEditSlotAmt(s.customAmt||""); }}
-                            style={{ marginLeft:8, background:"none", border:"none", color:"var(--text-faint)", cursor:"pointer", fontSize:11 }}>✏️</button>
+                            title="Edit slot amount"
+                            style={{ marginLeft:8, background:"none", border:"none", color:"var(--text-faint)", cursor:"pointer", display:"inline-flex", alignItems:"center", verticalAlign:"middle" }}>
+                            <Pencil size={11} />
+                          </button>
                         )}
                       </div>
                     )}
@@ -1053,10 +1069,12 @@ function CaseModal({ c, bank, project, logs, logsLoading, onClose, onEdit, onUpd
                       <Btn size="sm" variant="primary" onClick={()=>onUpdateSlot(c,i,"disbursed",true)}>Mark Disbursed</Btn>
                     )}
                     {s.disbursed && !s.bankPaid && onUpdateSlot && (
-                      <Btn size="sm" onClick={()=>onUpdateSlot(c,i,"bankPaid",true)}>Bank Paid ✓</Btn>
+                      <Btn size="sm" onClick={()=>onUpdateSlot(c,i,"bankPaid",true)}><Check size={12} style={{ marginRight:4 }} /> Bank Paid</Btn>
                     )}
                     {s.disbursed && s.bankPaid && (
-                      <span className="tag" style={{ background:"#10b98120", color:"#34d399" }}>✓ Bank Paid</span>
+                      <span className="tag" style={{ background:"#10b98120", color:"#34d399", display:"inline-flex", alignItems:"center", gap:4 }}>
+                        <Check size={11} /> Bank Paid
+                      </span>
                     )}
                     {s.disbursed && !s.bankPaid && (
                       <span className="tag" style={{ background:"#f59e0b20", color:"#fbbf24" }}>Awaiting Bank</span>

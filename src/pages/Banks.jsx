@@ -5,6 +5,7 @@ import {
   SectionHeader, Btn, FormField, FormPanel, EmptyState, Modal, DetailGrid, DatePicker,
 } from "../components/UI";
 import { fmtDate } from "../utils/helpers";
+import { Landmark, ExternalLink, FileText, Trash2, Phone, Mail, Pencil, X } from "lucide-react";
 
 const BLANK_BANK = { name:"", agreementType:"Gross", agreementPct:"", agreementDate:"", agreementFile:"", driveLink:"", remarks:"" };
 const BLANK_POC  = { name:"", role:"", phone:"", email:"" };
@@ -59,8 +60,21 @@ export default function Banks() {
     const bankCases = cases.filter(c => c.bankId === bank.id);
     openModal(
       <div>
-        <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:16 }}>
-          <span style={{ fontSize:32 }}>🏦</span>
+        <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:16 }}>
+          <div style={{
+            width: 48,
+            height: 48,
+            borderRadius: 12,
+            background: "rgba(0,212,161,0.12)",
+            border: "1px solid rgba(0,212,161,0.25)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "var(--accent)",
+            flexShrink: 0,
+          }}>
+            <Landmark size={24} />
+          </div>
           <div>
             <div style={{ fontFamily:"var(--font-head)", fontSize:20, fontWeight:700 }}>{bank.name}</div>
             <div style={{ display:"flex", gap:8, marginTop:4 }}>
@@ -80,12 +94,12 @@ export default function Banks() {
         {bank.driveLink && (
           <a href={bank.driveLink} target="_blank" rel="noreferrer"
             style={{ display:"inline-flex", alignItems:"center", gap:8, background:"var(--bg-deep)", border:"1px solid var(--border)", borderRadius:10, padding:"10px 16px", color:"var(--accent2)", fontSize:13, textDecoration:"none", marginBottom:16 }}>
-            📎 View Agreement on Google Drive →
+            <ExternalLink size={14} /> View Agreement on Google Drive
           </a>
         )}
         {bank.remarks && (
-          <div style={{ background:"var(--bg-deep)", borderRadius:8, padding:"10px 14px", fontSize:13, color:"var(--text-muted)", marginBottom:16 }}>
-            📝 {bank.remarks}
+          <div style={{ background:"var(--bg-deep)", borderRadius:8, padding:"10px 14px", fontSize:13, color:"var(--text-muted)", marginBottom:16, display:"flex", alignItems:"center", gap:8 }}>
+            <FileText size={14} color="var(--text-dim)" /> {bank.remarks}
           </div>
         )}
         <div style={{ fontWeight:600, fontSize:13, color:"var(--text-muted)", marginBottom:10 }}>
@@ -96,15 +110,15 @@ export default function Banks() {
             <div style={{ fontWeight:600, fontSize:14, marginBottom:4 }}>{c.name}</div>
             <div style={{ fontSize:12, color:"var(--text-faint)", marginBottom:6 }}>{c.role}</div>
             <div style={{ display:"flex", gap:16, fontSize:12 }}>
-              {c.phone && <span>📞 {c.phone}</span>}
-              {c.email && <span>✉️ {c.email}</span>}
+              {c.phone && <span style={{ display:"inline-flex", alignItems:"center", gap:4 }}><Phone size={12} style={{ color:"var(--text-faint)" }} /> {c.phone}</span>}
+              {c.email && <span style={{ display:"inline-flex", alignItems:"center", gap:4 }}><Mail size={12} style={{ color:"var(--text-faint)" }} /> {c.email}</span>}
             </div>
           </div>
         ))}
         {canEdit && (
           <div style={{ display:"flex", gap:10, marginTop:16 }}>
-            <Btn variant="primary" onClick={() => startEdit(bank)}>✏️ Edit Bank</Btn>
-            <Btn variant="danger"  onClick={() => { closeModal(); setDeleteTarget(bank); }}>🗑️ Delete Bank</Btn>
+            <Btn variant="primary" onClick={() => startEdit(bank)}><Pencil size={13} style={{ marginRight:6 }} /> Edit Bank</Btn>
+            <Btn variant="danger"  onClick={() => { closeModal(); setDeleteTarget(bank); }}><Trash2 size={13} style={{ marginRight:6 }} /> Delete Bank</Btn>
           </div>
         )}
       </div>
@@ -161,7 +175,10 @@ export default function Banks() {
                 <FormField label="Email"><input type="email" value={poc.email} onChange={pf(idx,"email")} /></FormField>
                 {pocs.length > 1 && (
                   <button onClick={() => setPocs(prev => prev.filter((_,i)=>i!==idx))}
-                    style={{ background:"#ef444420", border:"1px solid #ef444440", borderRadius:6, color:"#f87171", padding:"6px 10px", cursor:"pointer", marginBottom:2 }}>✕</button>
+                    title="Remove POC"
+                    style={{ background:"#ef444415", border:"1px solid #ef444435", borderRadius:6, color:"#f87171", padding:"7px 9px", cursor:"pointer", marginBottom:2, display:"inline-flex", alignItems:"center", justifyContent:"center" }}>
+                    <X size={13} />
+                  </button>
                 )}
               </div>
             ))}
@@ -172,13 +189,26 @@ export default function Banks() {
       {loading
         ? <div style={{ textAlign:"center", padding:60, color:"var(--text-faint)" }}>Loading…</div>
         : banks.length === 0
-          ? <EmptyState icon="🏦" message="No banks added yet." />
+          ? <EmptyState icon={<Landmark size={32} />} message="No banks added yet." />
           : (
             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(280px, 1fr))", gap:16 }}>
               {banks.map(b => (
                 <div key={b.id} className="card" style={{ padding:22, cursor:"pointer" }} onClick={() => viewBank(b)}>
                   <div style={{ display:"flex", justifyContent:"space-between", marginBottom:16 }}>
-                    <span style={{ fontSize:30 }}>🏦</span>
+                    <div style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 10,
+                      background: "rgba(0,212,161,0.1)",
+                      border: "1px solid rgba(0,212,161,0.2)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "var(--accent)",
+                      flexShrink: 0,
+                    }}>
+                      <Landmark size={20} />
+                    </div>
                     <span className="tag" style={{ background:b.agreementType==="Gross"?"#00d4a120":"#6366f120", color:b.agreementType==="Gross"?"var(--accent)":"#818cf8" }}>
                       {b.agreementType}
                     </span>
@@ -194,12 +224,13 @@ export default function Banks() {
                     </div>
                     {canEdit && (
                       <button onClick={e => { e.stopPropagation(); setDeleteTarget(b); }}
-                        style={{ background:"#ef444420", border:"1px solid #ef444440", borderRadius:6, color:"#f87171", fontSize:11, padding:"4px 10px", cursor:"pointer" }}>
-                        🗑️
+                        title="Delete Bank"
+                        style={{ background:"#ef444420", border:"1px solid #ef444440", borderRadius:6, color:"#f87171", fontSize:11, padding:"6px 8px", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                        <Trash2 size={13} />
                       </button>
                     )}
                   </div>
-                  {b.driveLink && <div style={{ marginTop:10, fontSize:11, color:"var(--accent2)" }}>📎 Drive linked</div>}
+                  {b.driveLink && <div style={{ marginTop:10, fontSize:11, color:"var(--accent2)", display:"flex", alignItems:"center", gap:4 }}><ExternalLink size={11} /> Drive linked</div>}
                 </div>
               ))}
             </div>
@@ -212,7 +243,9 @@ export default function Banks() {
         <div className="overlay" onClick={() => setDeleteTarget(null)}>
           <div style={{ background:"var(--bg-card)", border:"1px solid #ef444450", borderRadius:16, padding:28, maxWidth:400, width:"90%" }}
             onClick={e => e.stopPropagation()}>
-            <div style={{ fontSize:32, marginBottom:12 }}>🗑️</div>
+            <div style={{ width:48, height:48, borderRadius:12, background:"#ef444420", border:"1px solid #ef444440", display:"flex", alignItems:"center", justifyContent:"center", color:"#ef4444", marginBottom:16 }}>
+              <Trash2 size={24} />
+            </div>
             <div style={{ fontFamily:"var(--font-head)", fontSize:18, fontWeight:700, marginBottom:8 }}>Delete: {deleteTarget.name}?</div>
             <div style={{ fontSize:13, color:"var(--text-faint)", marginBottom:24, lineHeight:1.6 }}>
               This will permanently delete the bank. Cases linked to this bank will lose their bank reference.
