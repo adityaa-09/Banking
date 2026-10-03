@@ -140,12 +140,12 @@ export default function Projects() {
             <FormField label="Launch Date"><DatePicker value={form.launchDate} onChange={f("launchDate")} /></FormField>
             <FormField label="Developer Payout %">
               <input type="number" step="0.01" value={form.developerPayoutPct} onChange={f("developerPayoutPct")}
-                placeholder="e.g. 20 (% of bank income paid to developer)" />
+                placeholder="e.g. 0.20 (% of loan amount paid to developer)" />
             </FormField>
             <FormField label="Notes / Remarks" span={3}><textarea rows={2} value={form.notes} onChange={f("notes")} /></FormField>
           </div>
           <div style={{ marginTop:10, padding:"10px 14px", background:"var(--bg-deep)", borderRadius:8, fontSize:12, color:"var(--text-faint)", display:"flex", alignItems:"center", gap:8 }}>
-            <Sparkles size={14} color="var(--amber)" /> Revenue flow: Bank pays us commission (% of disbursed loan) → We pay developer {form.developerPayoutPct||"Y"}% from that bank income → Net Profit = Bank Income − Dev Payout
+            <Sparkles size={14} color="var(--amber)" /> Revenue flow: Bank pays us commission (% on disbursed loan) → We pay developer {form.developerPayoutPct||"Y"}% on loan amount (Gross: total loan, Net: disbursed) → Net Profit = Bank Income − Dev Payout
           </div>
         </FormPanel>
       )}

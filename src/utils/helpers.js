@@ -8,7 +8,7 @@ export const fmtShort = (n) => {
   const sign = n < 0 ? "-" : "";
   if (abs >= 10000000) return `${sign}₹${(abs / 10000000).toFixed(2)} Cr`;
   if (abs >= 100000)   return `${sign}₹${(abs / 100000).toFixed(2)} L`;
-  return `${sign}₹${abs.toLocaleString("en-IN")}`;
+  return `${sign}₹${Math.round(abs).toLocaleString("en-IN")}`;
 };
 
 export const fmtDate = (d) => {
@@ -53,17 +53,19 @@ export const genId = (prefix, list) =>
 
 // ─── REVENUE MODEL ────────────────────────────────────────────────────────────
 /*
-  GROSS = one lump sum payout when disbursed
+  GROSS = lump sum payout when disbursed
   NET   = per disbursement slot (each slot has its own amount + date)
 
   Bank Income  = disbursed loan amount * bank commission %
-  Dev Payout   = bank income * developer payout % (percentage paid to developer from bank income)
-  Net Profit   = bank income - dev payout (remaining profit kept by us)
+  Dev Payout:
+    - Gross: total loan amount * developer payout % (payable on total loan amount)
+    - Net:   disbursed amount * developer payout % (payable on disbursed amount per slot)
+  Net Profit   = Bank Income - Dev Payout (our net earnings)
 */
 
 export const calcSlotAmount  = (totalAmt, totalSlots) => totalSlots > 0 ? totalAmt / totalSlots : totalAmt;
 export const calcBankIncome  = (disbursedAmt, bankPct) => (disbursedAmt * (bankPct || 0)) / 100;
-export const calcDevPayout   = (bankIncome, devPct)    => (bankIncome * (devPct || 0)) / 100;
+export const calcDevPayout   = (baseLoanAmt, devPct)   => (baseLoanAmt * (devPct || 0)) / 100;
 
 // Returns { bankIncome, devPayout, profit } — ONLY from actually disbursed amounts
 export const calcCaseRevenue = (c, bank, project) => {
@@ -72,14 +74,19 @@ export const calcCaseRevenue = (c, bank, project) => {
   let bankIncome = 0;
   let devPayout  = 0;
 
-  if ((c.loanPayoutType || bank.agreementType) === "Gross") {
+  const isGross = (c.loanPayoutType || bank.agreementType) === "Gross";
+
+  if (isGross) {
     // Gross: lump sum — only count if actually disbursed
-    if (c.disbursed && c.disbursedAmt > 0) {
-      bankIncome = calcBankIncome(c.disbursedAmt, bank.agreementPct);
-      // Developer payout is a percentage from the bank income received
-      devPayout  = calcDevPayout(bankIncome, project.developerPayoutPct || 0);
+    const isDisbursed = Boolean(c.disbursed || c.status === "Disbursed" || c.status === "Fully Disbursed" || Number(c.disbursedAmt) > 0);
+    const disbAmt = Number(c.disbursedAmt) > 0 ? Number(c.disbursedAmt) : Number(c.loanAmt) || 0;
+    if (isDisbursed && disbAmt > 0) {
+      bankIncome = calcBankIncome(disbAmt, bank.agreementPct);
+
+      // In Gross: we pay developer % on the TOTAL loan amount
+      const totalLoanAmt = Number(c.loanAmt) > 0 ? Number(c.loanAmt) : disbAmt;
+      devPayout  = calcDevPayout(totalLoanAmt, project.developerPayoutPct || 0);
     }
-    // If not disbursed yet → no income, no profit
   } else {
     // Net: per slot — only count slots that are actually disbursed
     const slots = c.slots || [];
@@ -87,19 +94,23 @@ export const calcCaseRevenue = (c, bank, project) => {
 
     disbursedSlots.forEach(s => {
       // Use slot's custom amount if set, else fallback to equal split
-      const slotAmt = s.customAmt > 0 ? s.customAmt : calcSlotAmount(c.loanAmt || 0, c.totalSlots || 1);
+      const slotAmt = s.customAmt > 0 ? Number(s.customAmt) : calcSlotAmount(Number(c.loanAmt) || 0, c.totalSlots || 1);
       const slotIncome = calcBankIncome(slotAmt, bank.agreementPct);
       bankIncome += slotIncome;
 
+      // In Net: we pay developer % on the DISBURSED amount
       if (c.devPayoutMode === "per_slot") {
-        devPayout += calcDevPayout(slotIncome, project.developerPayoutPct || 0);
+        devPayout += calcDevPayout(slotAmt, project.developerPayoutPct || 0);
       }
     });
 
     if (c.devPayoutMode === "lump_sum") {
       const allDone = disbursedSlots.length === (c.totalSlots || 1);
       if (allDone) {
-        devPayout = calcDevPayout(bankIncome, project.developerPayoutPct || 0);
+        const totalDisbursed = disbursedSlots.reduce((sum, s) => {
+          return sum + (s.customAmt > 0 ? Number(s.customAmt) : calcSlotAmount(Number(c.loanAmt) || 0, c.totalSlots || 1));
+        }, 0);
+        devPayout = calcDevPayout(totalDisbursed, project.developerPayoutPct || 0);
       }
     }
   }
@@ -109,3 +120,4 @@ export const calcCaseRevenue = (c, bank, project) => {
 
 // Legacy alias — kept for backward compatibility
 export const calcCommission = calcBankIncome;
+

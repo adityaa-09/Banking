@@ -313,7 +313,7 @@ export default function Cases() {
             <FormField label="Project" span={2}>
               <select value={form.projectId} onChange={f("projectId")}>
                 <option value="">Select Project</option>
-                {projects.map(p => <option key={p.id} value={p.id}>{p.name} (Dev: {p.developerPayoutPct||0}% of bank income)</option>)}
+                {projects.map(p => <option key={p.id} value={p.id}>{p.name} (Dev: {p.developerPayoutPct||0}% of loan)</option>)}
               </select>
             </FormField>
             <FormField label="Bank">
@@ -817,7 +817,7 @@ function CaseModal({ c, bank, project, logs, logsLoading, onClose, onEdit, onUpd
               ["Sanctioned Amt", fmtShort(c.sanctionedAmt)],
               ["Sanction Date",  fmtDate(c.sanctionDate)],
               ["Bank %",         `${bank?.agreementPct||0}% (${bank?.agreementType})`],
-              ["Dev Payout %",   `${project?.developerPayoutPct||0}% of bank income`],
+              ["Dev Payout %",   `${project?.developerPayoutPct||0}% of loan (${isNet ? "disbursed" : "total"})`],
               ["Sanction Doc",   c.sanctionDoc||"—"],
               ["Dev Payout",     c.devPayoutStatus||"—"],
             ]} />
@@ -828,7 +828,7 @@ function CaseModal({ c, bank, project, logs, logsLoading, onClose, onEdit, onUpd
                 Revenue (disbursed only)
               </div>
               <RevRow label={`Bank Income (${bank?.agreementPct}%)`} value={rev.bankIncome} color="var(--accent)" />
-              <RevRow label={`Dev Payout (${project?.developerPayoutPct||0}% of bank income)`} value={rev.devPayout} color="#f87171" neg />
+              <RevRow label={`Dev Payout (${project?.developerPayoutPct||0}% of ${isNet ? "disbursed" : "total loan"})`} value={rev.devPayout} color="#f87171" neg />
               <div style={{ borderTop:"1px solid var(--border)", paddingTop:8, display:"flex", justifyContent:"space-between", fontWeight:700, fontSize:15 }}>
                 <span>Net Profit</span>
                 <span style={{ color:rev.profit>=0?"var(--green)":"#f87171" }}>{fmtShort(rev.profit)}</span>

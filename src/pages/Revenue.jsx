@@ -390,7 +390,7 @@ export default function Revenue() {
         <span style={{ color: "var(--text-dim)" }}>→</span>
         <span style={{ color: "var(--accent)", fontWeight: 600 }}>Bank pays commission</span>
         <span style={{ color: "var(--text-dim)" }}>→</span>
-        <span style={{ color: "#f87171", fontWeight: 600 }}>We pay developer Y% (of bank income)</span>
+        <span style={{ color: "#f87171", fontWeight: 600 }}>We pay developer Y% (on loan amount)</span>
         <span style={{ color: "var(--text-dim)" }}>→</span>
         <span style={{ color: "var(--green)", fontWeight: 700 }}>Net Profit = Bank Income − Dev Payout</span>
         <span style={{ marginLeft: "auto", display: "flex", gap: 10, alignItems: "center" }}>
@@ -420,7 +420,7 @@ export default function Revenue() {
           value={fmtShort(totals.totalDevPayout)}
           icon={<Building2 size={18} />}
           color="#f87171"
-          sub="Payable to developers"
+          sub="Gross: total loan % | Net: disbursed %"
         />
         <KpiCard
           label="Net Profit"
